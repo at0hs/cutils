@@ -1,292 +1,317 @@
 /**
  * @file CsvParser.c
- * @brief csvパーサー
+ * @brief CSVパーサー
  * @author atohs
  * @date 2024/07/12
-*/
+ */
+#include "Csv/parser/CsvParser.h"
+#include "Csv/content/CsvContent.h"
+#include "Csv/property/CsvProperty.h"
+#include "utilities.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Csv/property/CsvProperty.h"
-#include "Csv/content/CsvContent.h"
-#include "Csv/parser/CsvParser.h"
-#include "utilities.h"
 
 /**
  * @brief ファイルバッファ
  */
 typedef struct FileBuffer_t {
-	char *data;
-	size_t size;
+  char *data;
+  size_t size;
 } FileBuffer_t;
 
 /**
  * @struct CsvParser_t
- * @brief csvパーサー
+ * @brief CSVパーサー構造体
  */
 struct CsvParser_t {
-	CsvProperties_t properties;
-	CsvContent_t content;
-	FileBuffer_t file;
+  CsvProperties_t properties; //! プロパティ
+  CsvContent_t content;       //! 解析後のデータ
+  FileBuffer_t file;          //! 元のファイルデータ
 };
 
-//! ファイルの終端識別子
-#define EOF				((uint8_t)0xFF)
-//! EOFの長さ
-#define EOF_LENGTH		(sizeof(EOF))
-//! コンマ
-#define COMMA			(',')
-//! 改行文字
-#define CARRIGE_RETURN	('\r')
-//! 改行文字
-#define LINE_FEED		('\n')
+//! @brief バッファ番兵バイト(0xFF は ASCII 範囲外のため、ASCII
+//! 専用データ中には出現しない)
+#define CSV_EOF_BYTE ((uint8_t)0xFF)
+//! @brief 番兵バイトの長さ
+#define EOF_LENGTH (sizeof(CSV_EOF_BYTE))
+//! @brief コンマ
+#define COMMA (',')
+//! @brief キャリッジリターン
+#define CARRIGE_RETURN ('\r')
+//! @brief ラインフィード
+#define LINE_FEED ('\n')
 
 /**
- * @brief ファイルの終端化判定
- * @param c 文字
- * @return
+ * @brief ファイルの終端か判定する。
+ * @param[in] c 判定する文字
+ * @return 終端であればtrue、そうでなければfalse
  */
-static inline bool IsEof(char c) {
-	return (uint8_t)c == EOF;
-}
+static inline bool IsEof(char c) { return (uint8_t)c == CSV_EOF_BYTE; }
 
 /**
- * @brief コンマか
- * @param c 文字
- * @return
+ * @brief コンマか判定する。
+ * @param[in] c 判定する文字
+ * @return コンマであればtrue、そうでなければfalse
  */
-static inline bool IsComma(char c) {
-	return c == COMMA;
-}
+static inline bool IsComma(char c) { return c == COMMA; }
 
 /**
- * @brief 改行文字か
- * @param c 文字
- * @return
+ * @brief キャリッジリターン(\r)か判定する。
+ * @param[in] c 判定する文字
+ * @return キャリッジリターンであればtrue、そうでなければfalse
  */
-static inline bool IsCr(char c) {
-	return c == LINE_FEED;
-}
+static inline bool IsCr(char c) { return c == CARRIGE_RETURN; }
 
 /**
- * @brief 改行文字か
- * @param c 文字
- * @return
+ * @brief ラインフィード(\n)か判定する。
+ * @param[in] c 判定する文字
+ * @return ラインフィードであればtrue、そうでなければfalse
  */
-static inline bool IsLf(char c) {
-	return c == CARRIGE_RETURN;
-}
+static inline bool IsLf(char c) { return c == LINE_FEED; }
 
 /**
- * @brief 改行文字か
- * @param c 文字
- * @param nextChar 次の文字
- * @return
+ * @brief CRLF(\r\n)か判定する。
+ * @param[in] c        判定する文字
+ * @param[in] nextChar 次の文字
+ * @return CRLFであればtrue、そうでなければfalse
  */
 static inline bool IsCrLf(char c, char nextChar) {
-	return IsLf(c) && IsCr(nextChar);
+  return IsCr(c) && IsLf(nextChar);
 }
 
 /**
- * @brief 文字を終端する
- * @param c 文字
+ * @brief 文字を終端(NULL文字)にする。
+ * @param[out] c 終端させる文字へのポインタ
  */
-static inline void Terminate(char *c) {
-	*c = '\0';
-}
+static inline void Terminate(char *c) { *c = '\0'; }
 
 /**
- * @brief 不要な文字か
- * @param c 文字
- * @return
+ * @brief 不要な文字(NUL / CR / LF)か判定する。
+ * @param[in] c 判定する文字
+ * @return 不要な文字であればtrue、そうでなければfalse
  */
 static inline bool IsExtraChars(char c) {
-	return c == '\0' || IsCr(c) || IsLf(c);
+  return c == '\0' || IsLf(c) || IsCr(c);
 }
 
 /**
- * @brief アスキー文字か
- * @param c
- * @return
+ * @brief ASCII文字か判定する。
+ * @param[in] c 判定する文字
+ * @return ASCII文字であればtrue、そうでなければfalse
  */
-static inline bool IsAscii(char c) {
-	return (uint8_t)c <= 0x7F;
-}
+static inline bool IsAscii(char c) { return (uint8_t)c <= 0x7F; }
 
 /**
- * @brief 有効な文字コードか
- * @param data データ
- * @param size サイズ
- * @return
+ * @brief サポートされていない文字コードが含まれているか判定する。
+ * @param[in] data データ
+ * @param[in] size サイズ
+ * @return サポート外の文字が含まれていればtrue、すべてサポート内であればfalse
  */
 static bool IsNotSupportedCharCode(const char *data, size_t size) {
-	for (size_t i = 0; i < size; i++) {
-		if (!IsAscii(data[i]) && !IsEof(data[i])) {
-			return true;
-		}
-	}
-	return false;
+  for (size_t i = 0; i < size; i++) {
+    if (!IsAscii(data[i]) && !IsEof(data[i])) {
+      return true;
+    }
+  }
+  return false;
 }
 
 /**
- * @brief EOFで埋める
- * @param data データ
- * @param size サイズ
+ * @brief バッファの末尾をEOFで埋める。
+ * @param[in,out] data データバッファ
+ * @param[in]     size バッファサイズ
  */
 static void FillEof(char *data, size_t size) {
-	// 最後の値は必ずEofにする
-	data[size - 1] = EOF;
-	for (size_t i = size - 2; i != 0; i--) {
-		if (!IsExtraChars(data[i])) {
-			return;
-		}
-		data[i] = EOF;
-	}
+  // 最後の値は必ずEofにする
+  data[size - 1] = CSV_EOF_BYTE;
+  // size_t のアンダーフローを利用して index 0 まで処理する
+  // i-- で 0 → SIZE_MAX にラップし、SIZE_MAX < size - 1 が偽になってループ終了
+  for (size_t i = size - 2; i < size - 1; i--) {
+    if (!IsExtraChars(data[i])) {
+      return;
+    }
+    data[i] = CSV_EOF_BYTE;
+  }
 }
 
 /**
- * @brief パース
- * @param self インスタンス
- * @return 結果
+ * @brief CSVデータを解析する。
+ * @param[in,out] self インスタンス
+ * @return 処理結果
  */
 static CsvReturnCode Parse(CsvParser_t *self) {
-	if (IsNotSupportedCharCode(self->file.data, self->file.size)) {
-		return CSV_INVALID_CHAR_CODE;
-	}
-	CsvLine_t line;
-	CsvItem_t item;
-	CsvLine_Init(&line);
-	CsvItem_Init(&item);
-	CsvItem_Set(&item, self->file.data);
+  if (IsNotSupportedCharCode(self->file.data, self->file.size)) {
+    return CSV_INVALID_CHAR_CODE;
+  }
+  CsvLine_t line;
+  CsvItem_t item;
+  CsvLine_Init(&line);
+  CsvItem_Init(&item);
+  CsvItem_Set(&item, self->file.data);
 
-	for (char *c = self->file.data; true; c++) {
-		if (IsEof(*c)) {
-			Terminate(c);
-			CsvLine_MoveBackItem(&line, &item);
-			CsvContent_MoveBackLine(&self->content, &line);
-			break;
-		}
-		char *nextChar = c + 1;
-		if (IsComma(*c)) {
-			Terminate(c);	// 終端
-			CsvLine_MoveBackItem(&line, &item);
-			CsvItem_Set(&item, nextChar);
-		} else if (IsCrLf(*c, *nextChar)) {
-			Terminate(c);
-			Terminate(nextChar);
-			CsvLine_MoveBackItem(&line, &item);
-			CsvContent_MoveBackLine(&self->content, &line);
-			CsvLine_Init(&line);
-			CsvItem_Set(&item, nextChar + 1);
-		} else if (IsCr(*c)) {
-			Terminate(c);
-			CsvLine_MoveBackItem(&line, &item);
-			CsvContent_MoveBackLine(&self->content, &line);
-			CsvLine_Init(&line);
-			CsvItem_Set(&item, nextChar);
-		} else {
-			// do nothing
-		}
-	}
-	return CSV_SUCCESS;
+  for (char *c = self->file.data; true; c++) {
+    if (IsEof(*c)) {
+      Terminate(c);
+      CsvLine_MoveBackItem(&line, &item);
+      CsvContent_MoveBackLine(&self->content, &line);
+      break;
+    }
+    char *nextChar = c + 1;
+    if (IsComma(*c)) {
+      Terminate(c); // 終端
+      CsvLine_MoveBackItem(&line, &item);
+      CsvItem_Set(&item, nextChar);
+    } else if (IsCrLf(*c, *nextChar)) {
+      Terminate(c);
+      Terminate(nextChar);
+      CsvLine_MoveBackItem(&line, &item);
+      CsvContent_MoveBackLine(&self->content, &line);
+      CsvLine_Init(&line);
+      CsvItem_Set(&item, nextChar + 1);
+    } else if (IsCr(*c)) {
+      Terminate(c);
+      CsvLine_MoveBackItem(&line, &item);
+      CsvContent_MoveBackLine(&self->content, &line);
+      CsvLine_Init(&line);
+      CsvItem_Set(&item, nextChar);
+    } else if (IsLf(*c)) {
+      Terminate(c);
+      CsvLine_MoveBackItem(&line, &item);
+      CsvContent_MoveBackLine(&self->content, &line);
+      CsvLine_Init(&line);
+      CsvItem_Set(&item, nextChar);
+    } else {
+      // do nothing
+    }
+  }
+  return CSV_SUCCESS;
 }
 
 /**
- * @brief ファイル読込み
- * @param self インスタンス
- * @param filePath ファイルパス
- * @return 0=成功
+ * @brief ファイルを読み込む。
+ * @param[in,out] self     インスタンス
+ * @param[in]     filePath ファイルパス
+ * @return 成功時は0、失敗時は負のエラーコード
  */
 static int LoadFile(CsvParser_t *self, const char *filePath) {
-	ssize_t file_size = File_GetSize(filePath);
-	if (file_size < 0) {
-		return (int)file_size;
-	}
-	size_t allocate_size = file_size + EOF_LENGTH;
-	self->file.data = malloc(allocate_size);
-	int ret = File_Read(filePath, self->file.data, file_size);
-	if (ret < 0) {
-		free(self->file.data);
-		self->file.data = NULL;
-		return ret;
-	}
-	self->file.size = allocate_size;
-	FillEof(self->file.data, self->file.size);
-	return 0;
+  ssize_t file_size = File_GetSize(filePath);
+  if (file_size < 0) {
+    return (int)file_size;
+  }
+  size_t allocate_size = file_size + EOF_LENGTH;
+  self->file.data = malloc(allocate_size);
+  if (!self->file.data) {
+    return -1;
+  }
+  int ret = File_Read(filePath, self->file.data, file_size);
+  if (ret < 0) {
+    free(self->file.data);
+    self->file.data = NULL;
+    return ret;
+  }
+  self->file.size = allocate_size;
+  FillEof(self->file.data, self->file.size);
+  return 0;
 }
 
 /**
- * @brief 初期化
- * @param props プロパティ
- * @return インスタンス
+ * @brief ロード前にインスタンスをリセットする。
+ *
+ * 2回目以降のLoad呼び出し時に前回のバッファとコンテンツを解放する。
+ * @param[in,out] self インスタンス
+ */
+static void Reset(CsvParser_t *self) {
+  if (self->file.data) {
+    free(self->file.data);
+    self->file.data = NULL;
+    self->file.size = 0;
+  }
+  CsvContent_Destroy(&self->content);
+  CsvContent_Init(&self->content);
+}
+
+/**
+ * @brief CSVパーサーを初期化する。
+ * @param[in] props CSVプロパティへのポインタ
+ * @return 初期化されたパーサーへのポインタ。失敗時はNULL
  */
 CsvParser_t *CsvParser_Init(const CsvProperties_t *props) {
-	CsvParser_t *self = (CsvParser_t *)calloc(1, sizeof(*self));
-
-	self->properties = *props;
-	CsvContent_Init(&self->content);
-	return self;
+  if (UNLIKELY(!props)) {
+    return NULL;
+  }
+  CsvParser_t *self = (CsvParser_t *)calloc(1, sizeof(*self));
+  if (UNLIKELY(!self)) {
+    return NULL;
+  }
+  self->properties = *props;
+  CsvContent_Init(&self->content);
+  return self;
 }
 
 /**
- * @brief データを読み込んでパースする
- * @param self インスタンス
- * @param filePath ファイルパス
- * @return ステータス
+ * @brief ファイルからCSVを読み込む。
+ * @param[in,out] self     CsvParser_t構造体へのポインタ
+ * @param[in]     filePath ファイルパス
+ * @return 処理結果
  */
 CsvReturnCode CsvParser_LoadFromFile(CsvParser_t *self, const char *filePath) {
-	if (UNLIKELY(!self)) {
-		return CSV_INVALID_PARAMETER;
-	}
-	if (LoadFile(self, filePath) != 0) {
-		return CSV_INVALID_PARAMETER;
-	}
-	return Parse(self);
+  if (UNLIKELY(!self || !filePath)) {
+    return CSV_INVALID_PARAMETER;
+  }
+  Reset(self);
+  if (LoadFile(self, filePath) != 0) {
+    return CSV_INVALID_PARAMETER;
+  }
+  return Parse(self);
 }
 
 /**
- * @brief データを読み込んでパースする
- * @param self インスタンス
- * @param data データ
- * @param dataSize データサイズ
- * @return ステータス
+ * @brief メモリ上のデータからCSVを読み込む。
+ * @param[in,out] self     CsvParser_t構造体へのポインタ
+ * @param[in]     data     CSVデータへのポインタ
+ * @param[in]     dataSize データのサイズ
+ * @return 処理結果
  */
-CsvReturnCode CsvParser_LoadFromData(CsvParser_t *self, const char *data, size_t dataSize) {
-	if (UNLIKELY(!self || !data || dataSize == 0)) {
-		return CSV_INVALID_PARAMETER;
-	}
-	size_t allocate_size = dataSize + EOF_LENGTH;
-	self->file.data = malloc(allocate_size);
-	self->file.size = allocate_size;
-	memcpy(self->file.data, data, dataSize);
-	FillEof(self->file.data, allocate_size);
-	return Parse(self);
+CsvReturnCode CsvParser_LoadFromData(CsvParser_t *self, const char *data,
+                                     size_t dataSize) {
+  if (UNLIKELY(!self || !data || dataSize == 0)) {
+    return CSV_INVALID_PARAMETER;
+  }
+  Reset(self);
+  size_t allocate_size = dataSize + EOF_LENGTH;
+  self->file.data = malloc(allocate_size);
+  if (UNLIKELY(!self->file.data)) {
+    return CSV_INVALID_PARAMETER;
+  }
+  self->file.size = allocate_size;
+  memcpy(self->file.data, data, dataSize);
+  FillEof(self->file.data, allocate_size);
+  return Parse(self);
 }
 
 /**
- * @brief csvデータを取得する
- * @param self インスタンス
- * @return 参照
+ * @brief 解析されたコンテンツを取得する。
+ * @param[in] self CsvParser_t構造体へのポインタ
+ * @return 解析結果のコンテンツへのポインタ。失敗時はNULL
  */
 const CsvContent_t *CsvParser_GetContent(CsvParser_t *self) {
-	if (UNLIKELY(!self)) {
-		return NULL;
-	}
-	return &self->content;
+  if (UNLIKELY(!self)) {
+    return NULL;
+  }
+  return &self->content;
 }
 
 /**
- * @brief インスタンスを破棄
- * @param self インスタンス
+ * @brief CSVパーサーを破棄する。
+ * @param[in,out] self CsvParser_t構造体へのポインタ
  */
 void CsvParser_Destroy(CsvParser_t *self) {
-	if (UNLIKELY(!self)) {
-		return;
-	}
-	CsvContent_Destroy(&self->content);
-	if (self->file.data) free(self->file.data);
-	free(self);
-	self = NULL;
+  if (UNLIKELY(!self)) {
+    return;
+  }
+  CsvContent_Destroy(&self->content);
+  if (self->file.data)
+    free(self->file.data);
+  free(self);
 }
-
-

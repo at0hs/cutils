@@ -1,27 +1,17 @@
-#include "gtest/gtest.h"
-#include <Bitset/Bitset.h>
-#include <iostream>
-#include <bitset>
-#include <vector>
-#include <bitset>
-
 // NOLINTBEGIN
-class BitsetTest :public::testing::Test {
+#include "BitsetTest.hpp"
 
-protected:
-	static constexpr std::uint64_t numBits = 128;
-	Bitset_t bitset;
-	std::bitset<numBits> stlBitset;
-	void SetUp() override {
-		Bitset_Init(&bitset, 128);
-	}
-	void TearDown() override {
-		Bitset_Destroy(&bitset);
-	}
-	std::vector<std::uint64_t> Get() {
-		return std::vector<std::uint64_t>(bitset.words, bitset.words + bitset.capacity);
-	}
-};
+void BitsetTest::SetUp() {
+	Bitset_Init(&bitset, 128);
+}
+
+void BitsetTest::TearDown() {
+	Bitset_Destroy(&bitset);
+}
+
+std::vector<std::uint64_t> BitsetTest::Get() {
+	return std::vector<std::uint64_t>(bitset.words, bitset.words + bitset.capacity);
+}
 
 TEST_F(BitsetTest, Initialize) {
 	Bitset_t bs;
@@ -100,7 +90,7 @@ TEST_F(BitsetTest, Reset) {
 	std::vector<std::uint64_t> output1 = Get();
 	EXPECT_EQ(1, output1[0]);
 	EXPECT_EQ(1, output1[1]);
-	
+
 	Bitset_Reset(&bitset, 0);
 	Bitset_Reset(&bitset, 64);
 	std::vector<std::uint64_t> output2 = Get();
@@ -238,6 +228,5 @@ TEST_F(BitsetTest, SegmentationFault) {
 
 	EXPECT_EQ(false, Bitset_None(nullptr));
 }
-
 
 // NOLINTEND

@@ -4,7 +4,6 @@ set(TESTING_FRAMEWORK
 	GTest::gtest_main
 )
 
-add_subdirectory(Sample)
 add_subdirectory(ExtendedTypes)
 add_subdirectory(PublisherSubscriber)
 add_subdirectory(Thread)

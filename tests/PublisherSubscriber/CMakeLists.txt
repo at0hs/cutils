@@ -1,6 +1,10 @@
 set(TARGET PublisherSubscriberTest)
 
-add_executable(${TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+add_executable(${TARGET}
+    ${CMAKE_CURRENT_SOURCE_DIR}/SubscriptionTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MessageStorageTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/PubSubTest.cpp
+)
 
 target_compile_features(${TARGET} PUBLIC cxx_std_20)
 

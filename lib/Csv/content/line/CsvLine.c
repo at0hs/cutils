@@ -4,65 +4,61 @@
  * @author atohs
  * @date 2024/07/12
  */
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
 #include "Csv/content/line/CsvLine.h"
-#include "Csv/content/line/CsvLineCollection.h"
 #include "utilities.h"
+#include <stdbool.h>
 
- /**
-  * @brief 初期化
-  * @param self インスタンス
-  */
+/**
+ * @brief CsvLineを初期化する。
+ * @param[in,out] self 対象オブジェクト
+ */
 void CsvLine_Init(CsvLine_t *self) {
-	CLEAR(self);
-	CsvItemCollection_Init(&self->items);
+  CLEAR(self);
+  CsvItemCollection_Init(&self->items);
 }
 
 /**
- * @brief ムーブセマンティクス
- * @param self インスタンス
- * @param newOwner 新たな所有者
+ * @brief 所有権を新しいオブジェクトに移動する。
+ * @param[in,out] self     移動元のオブジェクト
+ * @param[in,out] newOwner 移動先のオブジェクト
  */
 void CsvLine_MoveOwner(CsvLine_t *self, CsvLine_t *newOwner) {
-	*newOwner = *self;
-	CLEAR(self);
+  *newOwner = *self;
+  CLEAR(self);
 }
 
 /**
- * @brief 最後尾にアイテムを追加
- * @param self インスタンス
- * @param item アイテム
+ * @brief アイテムをラインの末尾に追加（移動）する。
+ * @param[in,out] self 対象オブジェクト
+ * @param[in]     item 追加するアイテム
  */
 void CsvLine_MoveBackItem(CsvLine_t *self, CsvItem_t *item) {
-	CsvItemCollection_MoveAndAdd(&self->items, item);
+  CsvItemCollection_MoveAndAdd(&self->items, item);
 }
 
 /**
- * @brief インスタンスを破棄
- * @param self インスタンス
+ * @brief CsvLineを破棄する。
+ * @param[in,out] self 対象オブジェクト
  */
 void CsvLine_Destroy(CsvLine_t *self) {
-	CsvItemCollection_Destroy(&self->items);
-	CLEAR(self);
+  CsvItemCollection_Destroy(&self->items);
+  CLEAR(self);
 }
 
 /**
- * @brief コンソールに出力
- * @param self
+ * @brief CsvLineの内容を表示する。
+ * @param[in] self 対象オブジェクト
  */
-void CsvLine_Print(CsvLine_t *self) {
-	CsvItemCollection_Print(&self->items);
+void CsvLine_Print(const CsvLine_t *self) {
+  CsvItemCollection_Print(&self->items);
 }
 
 /**
- * @brief 評価
- * @param self インスタンス
- * @param line 行データ
- * @return
+ * @brief 指定されたCsvLineと等しいか判定する。
+ * @param[in] self 対象オブジェクト
+ * @param[in] line 比較対象のライン
+ * @return 等しい場合はtrue、そうでない場合はfalse
  */
-bool CsvLine_Equals(CsvLine_t *self, CsvLine_t *line) {
-	return CsvItemCollection_Equals(&self->items, &line->items);
+bool CsvLine_Equals(const CsvLine_t *self, const CsvLine_t *line) {
+  return CsvItemCollection_Equals(&self->items, &line->items);
 }
-

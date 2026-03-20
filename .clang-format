@@ -1,0 +1,49 @@
+---
+BasedOnStyle: Google
+Language: Cpp
+
+# 列幅
+ColumnLimit: 80
+
+# インデント
+IndentWidth: 2
+ContinuationIndentWidth: 4
+TabWidth: 2
+UseTab: Never
+
+# ブレース
+BreakBeforeBraces: Attach
+
+# ポインタ・参照の位置 (int *p スタイル)
+PointerAlignment: Right
+ReferenceAlignment: Right
+
+# 関数引数の揃え
+AlignAfterOpenBracket: Align
+BinPackArguments: false
+BinPackParameters: false
+
+# 演算子の前で改行
+BreakBeforeBinaryOperators: None
+
+# コメント: 最大文字数を超えても折り返さない
+ReflowComments: false
+
+# インクルードのソートを無効化
+SortIncludes: Never
+
+# 短い関数・ブロックの一行化
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+
+# その他
+SpaceBeforeParens: ControlStatements
+SpaceAfterCStyleCast: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+# マクロ
+AlignConsecutiveMacros: AcrossEmptyLines
+...

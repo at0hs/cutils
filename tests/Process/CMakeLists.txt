@@ -1,6 +1,6 @@
 set(TARGET ProcessTest)
 
-add_executable(${TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+add_executable(${TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/ProcessTest.cpp)
 
 target_compile_features(${TARGET} PUBLIC cxx_std_20)
 
@@ -25,6 +25,10 @@ target_compile_options(${TARGET} PRIVATE
 	$<$<CONFIG:Coverage>:${DEBUG_OPTIONS} --coverage>
 	$<$<CONFIG:Address>:${DEBUG_OPTIONS} -fsanitize=address>
 )
+target_compile_definitions(${TARGET} PRIVATE
+	PROCESS_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
 add_test(NAME ${TARGET} COMMAND ${TARGET}-googletest)
 
 enable_testing()

@@ -1,6 +1,6 @@
 set(TARGET StreamTest)
 
-add_executable(${TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+add_executable(${TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/MemoryStreamTest.cpp)
 
 target_compile_features(${TARGET} PUBLIC cxx_std_20)
 

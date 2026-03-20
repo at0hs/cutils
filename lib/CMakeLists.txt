@@ -33,7 +33,6 @@ target_compile_definitions(${TARGET} PRIVATE
 	_GNU_SOURCE
 )
 
-add_subdirectory(Sample)
 add_subdirectory(Csv)
 add_subdirectory(ExtendedTypes)
 add_subdirectory(PublisherSubscriber)

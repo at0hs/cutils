@@ -4,11 +4,10 @@
  * @author atohs
  * @date 2024/07/12
  */
-#include <stdint.h>
-#include <stdlib.h>
-#include "PublisherSubscriber/Publisher.h"
 #include "PublisherSubscriber/MessageStorage.h"
 #include "utilities.h"
+#include <stdint.h>
+#include <stdlib.h>
 
 /**
  * @brief 最後尾のデータの参照を取得
@@ -16,7 +15,7 @@
  * @return ポインタ
  */
 static inline void *GetBottom(MessageStorage_t *self) {
-	return self->messages + (self->messageSize * self->bottom);
+  return (uint8_t *)self->messages + (self->messageSize * self->bottom);
 }
 
 /**
@@ -25,7 +24,7 @@ static inline void *GetBottom(MessageStorage_t *self) {
  * @return ポインタ
  */
 static inline void *GetTop(MessageStorage_t *self) {
-	return self->messages + (self->top * self->messageSize);
+  return (uint8_t *)self->messages + (self->top * self->messageSize);
 }
 
 /**
@@ -33,11 +32,11 @@ static inline void *GetTop(MessageStorage_t *self) {
  * @param self インスタンス
  */
 static inline void UpdateTop(MessageStorage_t *self) {
-	if ((self->top + 1) >= self->capacity) {
-		self->top = 0;
-	} else {
-		self->top++;
-	}
+  if ((self->top + 1) >= self->capacity) {
+    self->top = 0;
+  } else {
+    self->top++;
+  }
 }
 
 /**
@@ -45,11 +44,11 @@ static inline void UpdateTop(MessageStorage_t *self) {
  * @param self インスタンス
  */
 static inline void UpdateBottom(MessageStorage_t *self) {
-	if ((self->bottom + 1) >= self->capacity) {
-		self->bottom = 0;
-	} else {
-		self->bottom++;
-	}
+  if ((self->bottom + 1) >= self->capacity) {
+    self->bottom = 0;
+  } else {
+    self->bottom++;
+  }
 }
 
 /**
@@ -58,14 +57,18 @@ static inline void UpdateBottom(MessageStorage_t *self) {
  * @param messageSize データサイズ
  * @param capacity 最大容量
  */
-void MessageStorage_Init(MessageStorage_t *self, size_t messageSize, size_t capacity) {
-	if (UNLIKELY(!self)) {
-		return;
-	}
-	CLEAR(self);
-	self->messages = calloc(capacity, messageSize);
-	self->capacity = capacity;
-	self->messageSize = messageSize;
+void MessageStorage_Init(MessageStorage_t *self, size_t messageSize,
+                         size_t capacity) {
+  if (UNLIKELY(!self)) {
+    return;
+  }
+  CLEAR(self);
+  self->messages = calloc(capacity, messageSize);
+  if (UNLIKELY(!self->messages)) {
+    return;
+  }
+  self->capacity = capacity;
+  self->messageSize = messageSize;
 }
 
 /**
@@ -75,17 +78,17 @@ void MessageStorage_Init(MessageStorage_t *self, size_t messageSize, size_t capa
  * @return 0: 成功
  */
 int MessageStorage_Push(MessageStorage_t *self, const void *adding) {
-	if (UNLIKELY(!self || !adding)) {
-		return -1;
-	}
-	if (self->count == self->capacity) {
-		return -1;
-	}
-	void *message = GetBottom(self);
-	memcpy(message, adding, self->messageSize);
-	UpdateBottom(self);
-	self->count++;
-	return 0;
+  if (UNLIKELY(!self || !adding)) {
+    return -1;
+  }
+  if (self->count == self->capacity) {
+    return -1;
+  }
+  void *message = GetBottom(self);
+  memcpy(message, adding, self->messageSize);
+  UpdateBottom(self);
+  self->count++;
+  return 0;
 }
 
 /**
@@ -95,16 +98,16 @@ int MessageStorage_Push(MessageStorage_t *self, const void *adding) {
  * @return 0=成功
  */
 int MessageStorage_Pop(MessageStorage_t *self, void *buffer) {
-	if (UNLIKELY(!self || !buffer)) {
-		return -1;
-	}
-	if (self->count == 0) {
-		return -1;
-	}
-	memcpy(buffer, GetTop(self), self->messageSize);
-	UpdateTop(self);
-	self->count--;
-	return 0;
+  if (UNLIKELY(!self || !buffer)) {
+    return -1;
+  }
+  if (self->count == 0) {
+    return -1;
+  }
+  memcpy(buffer, GetTop(self), self->messageSize);
+  UpdateTop(self);
+  self->count--;
+  return 0;
 }
 
 /**
@@ -113,13 +116,13 @@ int MessageStorage_Pop(MessageStorage_t *self, void *buffer) {
  * @return ポインタ
  */
 const void *MessageStorage_Peek(MessageStorage_t *self) {
-	if (UNLIKELY(!self)) {
-		return NULL;
-	}
-	if (self->count == 0) {
-		return NULL;
-	}
-	return GetTop(self);
+  if (UNLIKELY(!self)) {
+    return NULL;
+  }
+  if (self->count == 0) {
+    return NULL;
+  }
+  return GetTop(self);
 }
 
 /**
@@ -127,16 +130,16 @@ const void *MessageStorage_Peek(MessageStorage_t *self) {
  * @param self インスタンス
  */
 void MessageStorage_MoveLast(MessageStorage_t *self) {
-	if (UNLIKELY(!self)) {
-		return;
-	}
-	if (self->count <= 1) {
-		return;
-	}
-	void *topMessage = GetTop(self);
-	UpdateTop(self);
-	UpdateBottom(self);
-	memcpy(GetBottom(self), topMessage, self->messageSize);
+  if (UNLIKELY(!self)) {
+    return;
+  }
+  if (self->count <= 1) {
+    return;
+  }
+  void *topMessage = GetTop(self);
+  memcpy(GetBottom(self), topMessage, self->messageSize);
+  UpdateTop(self);
+  UpdateBottom(self);
 }
 
 /**
@@ -144,14 +147,14 @@ void MessageStorage_MoveLast(MessageStorage_t *self) {
  * @param self インスタンス
  */
 void MessageStorage_RemoveTop(MessageStorage_t *self) {
-	if (UNLIKELY(!self)) {
-		return;
-	}
-	if (self->count == 0) {
-		return;
-	}
-	UpdateTop(self);
-	self->count--;
+  if (UNLIKELY(!self)) {
+    return;
+  }
+  if (self->count == 0) {
+    return;
+  }
+  UpdateTop(self);
+  self->count--;
 }
 
 /**
@@ -159,9 +162,10 @@ void MessageStorage_RemoveTop(MessageStorage_t *self) {
  * @param self インスタンス
  */
 void MessageStorage_Destroy(MessageStorage_t *self) {
-	if (UNLIKELY(!self)) {
-		return;
-	}
-	if (self->messages) free(self->messages);
-	CLEAR(self);
+  if (UNLIKELY(!self)) {
+    return;
+  }
+  if (self->messages)
+    free(self->messages);
+  CLEAR(self);
 }

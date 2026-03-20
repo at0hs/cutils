@@ -2,7 +2,6 @@
 #include <vector>
 #include "Process/Process.h"
 
-
 struct ProcessInfo {
 	std::string commandLine;
 	bool disableOutputCapture{ false };
@@ -29,8 +28,12 @@ public:
 		Process_Init(this, nullptr);
 	}
 	ProcessClass(ProcessInfo &info) {
-		SetStartInfo(info);
-		Process_Init(this, nullptr);
+		ProcessStartInfo startInfo;
+		startInfo.commandLine = info.commandLine.c_str();
+		startInfo.environment = info.GetEnvironment().empty()
+			? nullptr : info.GetEnvironment().data();
+		startInfo.disableOutputCapture = info.disableOutputCapture;
+		Process_Init(this, &startInfo);
 	}
 	~ProcessClass() {
 		Process_Destroy(this);
@@ -40,7 +43,7 @@ public:
 		return Process_HasExited(this);
 	}
 
-	std::int32_t ExitCode() {
+	int32_t ExitCode() {
 		return Process_ExitCode(this);
 	}
 	double TotalProcessorTime() {
@@ -78,10 +81,11 @@ public:
 			ProcessOutput_Destroy(&output);
 			return "";
 		}
-		char buffer[output.size + 1];
-		ProcessOutput_ReadTo(&output, buffer, output.size + 1);
+		std::vector<char> buffer(output.size + 1);
+		buffer[output.size] = '\0';
+		ProcessOutput_ReadTo(&output, buffer.data(), output.size + 1);
 		ProcessOutput_Destroy(&output);
-		return std::string(buffer);
+		return std::string(buffer.data());
 	}
 
 	void Start() {
@@ -92,7 +96,7 @@ public:
 		Process_Wait(this);
 	}
 
-	bool WaitFor(std::int32_t milliseconds) {
+	bool WaitFor(int32_t milliseconds) {
 		return Process_WaitFor(this, milliseconds);
 	}
 
@@ -119,4 +123,3 @@ public:
 		return instance;
 	}
 };
-

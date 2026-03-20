@@ -64,67 +64,6 @@ protected:
 	Observer observer1;
 	Observer observer2;
 	Observer observer3;
-	virtual void SetUp() {}
-	virtual void TearDown() {}
+	virtual void SetUp();
+	virtual void TearDown();
 };
-
-TEST_F(PubSubTest, Publish) {
-	subject.Subscribe(&observer1.subscriber, subject.ATTR1);
-	subject.Publish(subject.MSG1, subject.ATTR1);
-	ASSERT_EQ(1, observer1.calledCount);
-	ASSERT_EQ(1, observer1.publishes.size());
-	EXPECT_EQ(subject.ATTR1, observer1.publishes[0].attribute);
-	EXPECT_EQ(subject.MSG1, observer1.publishes[0].message);
-}
-
-TEST_F(PubSubTest, MultiplePublish) {
-	subject.Subscribe(&observer1.subscriber, subject.ATTR1);
-	subject.Publish(subject.MSG1, subject.ATTR1);
-	subject.Publish(subject.MSG1, subject.ATTR1);
-	ASSERT_EQ(2, observer1.calledCount);
-	EXPECT_EQ(subject.ATTR1, observer1.publishes[0].attribute);
-	EXPECT_EQ(subject.MSG1, observer1.publishes[0].message);
-	EXPECT_EQ(subject.ATTR1, observer1.publishes[1].attribute);
-	EXPECT_EQ(subject.MSG1, observer1.publishes[1].message);
-}
-
-TEST_F(PubSubTest, Subscribers) {
-	subject.Subscribe(&observer1.subscriber, subject.ATTR1);
-	subject.Subscribe(&observer2.subscriber, subject.ATTR1);
-	subject.Publish(subject.MSG1, subject.ATTR1);
-	ASSERT_EQ(1, observer1.calledCount);
-	EXPECT_EQ(subject.ATTR1, observer1.publishes[0].attribute);
-	EXPECT_EQ(subject.MSG1, observer1.publishes[0].message);
-	ASSERT_EQ(1, observer2.calledCount);
-	EXPECT_EQ(subject.ATTR1, observer2.publishes[0].attribute);
-	EXPECT_EQ(subject.MSG1, observer2.publishes[0].message);
-}
-
-TEST_F(PubSubTest, DifferentAttribute) {
-	subject.Subscribe(&observer1.subscriber, subject.ATTR1);
-	subject.Publish(subject.MSG1, subject.ATTR2);
-	EXPECT_EQ(0, observer1.calledCount);
-}
-
-TEST_F(PubSubTest, Republish) {
-	observer1.Update =
-		[](Observer *observer, const PublishContent_t *content) {
-		if (observer->calledCount <= 1) {
-			return SUBSCRIBER_NACK;
-		}
-		return SUBSCRIBER_ACK;
-	};
-	subject.Subscribe(&observer1.subscriber, subject.ATTR1);
-	subject.Publish(subject.MSG1, subject.ATTR1);
-	ASSERT_EQ(1, observer1.calledCount);
-	subject.Publish(subject.MSG2, subject.ATTR2);
-	EXPECT_EQ(2, observer1.calledCount);
-}
-
-TEST_F(PubSubTest, Unsubscribe) {
-	SubscriptionAccountId id = subject.Subscribe(&observer1.subscriber, subject.ATTR1);
-	subject.Unsubscribe(id);
-	subject.Publish(subject.MSG1, subject.ATTR1);
-	EXPECT_EQ(0, observer1.calledCount);
-}
-

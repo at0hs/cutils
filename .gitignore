@@ -1,4 +1,3 @@
-.vscode/
 Build/
 build/
 CMakeFiles/
@@ -7,6 +6,7 @@ memo.md
 HTML/
 Sample/
 document/
-LinkedList.c
-LinkedList.h
 tmpCodeRunnerFile
+coverage.info
+.cache/
+build_asan/

@@ -1,6 +1,10 @@
 set(TARGET ExtendedTypesTest)
 
-add_executable(${TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+add_executable(${TARGET}
+    ${CMAKE_CURRENT_SOURCE_DIR}/ArrayListTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DictionaryTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/LinkedListTest.cpp
+)
 
 target_compile_features(${TARGET} PUBLIC cxx_std_20)
 

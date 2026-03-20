@@ -1,6 +1,9 @@
 set(TARGET ThreadTest)
 
-add_executable(${TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+add_executable(${TARGET}
+    ${CMAKE_CURRENT_SOURCE_DIR}/BackGroundTaskTest.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ThreadPoolTest.cpp
+)
 
 target_compile_features(${TARGET} PUBLIC cxx_std_20)
 

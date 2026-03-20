@@ -1,6 +1,6 @@
 set(TARGET CsvTest)
 
-add_executable(${TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+add_executable(${TARGET} ${CMAKE_CURRENT_SOURCE_DIR}/CsvParserTest.cpp)
 
 target_compile_features(${TARGET} PUBLIC cxx_std_20)
 
@@ -15,6 +15,10 @@ target_link_libraries(${TARGET} PRIVATE
 	${TESTING_FRAMEWORK}
 	$<$<CONFIG:Coverage>:gcov>
 	$<$<CONFIG:Address>:asan>
+)
+
+target_compile_definitions(${TARGET} PRIVATE
+	CSV_TEST_INPUT_FILE="${CMAKE_CURRENT_SOURCE_DIR}/input.csv"
 )
 
 target_compile_options(${TARGET} PRIVATE

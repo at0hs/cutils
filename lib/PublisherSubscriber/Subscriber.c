@@ -5,7 +5,6 @@
  * @date 2024/07/12
  */
 #include "PublisherSubscriber/Subscriber.h"
-#include "PublisherSubscriber/Broker.h"
 #include "utilities.h"
 
 /**
@@ -14,13 +13,14 @@
  * @param update 通知関数
  * @param userData 通知関数に渡すユーザーデータ
  */
-void Subscriber_Init(Subscriber_t *self, SubscriberUpdate update, void *userData) {
-	if (UNLIKELY(!self)) {
-		return;
-	}
-	CLEAR(self);
-	self->update = update;
-	self->userData = userData;
+void Subscriber_Init(Subscriber_t *self, SubscriberUpdate update,
+                     void *userData) {
+  if (UNLIKELY(!self)) {
+    return;
+  }
+  CLEAR(self);
+  self->update = update;
+  self->userData = userData;
 }
 
 /**
@@ -29,14 +29,15 @@ void Subscriber_Init(Subscriber_t *self, SubscriberUpdate update, void *userData
  * @param publish 内容
  * @return ACK､NACK
  */
-SubscriberReply Subscriber_Update(Subscriber_t *self, const PublishContent_t *publish) {
-	if (UNLIKELY(!self)) {
-		return SUBSCRIBER_NACK;
-	}
-	if (self->update) {
-		return self->update(publish, self->userData);
-	}
-	return SUBSCRIBER_ACK;
+SubscriberReply Subscriber_Update(Subscriber_t *self,
+                                  const PublishContent_t *publish) {
+  if (UNLIKELY(!self)) {
+    return SUBSCRIBER_NACK;
+  }
+  if (self->update) {
+    return self->update(publish, self->userData);
+  }
+  return SUBSCRIBER_ACK;
 }
 
 /**
@@ -44,11 +45,8 @@ SubscriberReply Subscriber_Update(Subscriber_t *self, const PublishContent_t *pu
  * @param self インスタンス
  */
 void Subscriber_Destroy(Subscriber_t *self) {
-	if (UNLIKELY(!self)) {
-		return;
-	}
-	CLEAR(self);
+  if (UNLIKELY(!self)) {
+    return;
+  }
+  CLEAR(self);
 }
-
-
-

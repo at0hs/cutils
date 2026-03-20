@@ -1,18 +1,16 @@
-#include <thread>
-#include "gtest/gtest.h"
-#include "ProcessClass.hpp"
+#include "ProcessTest.hpp"
 
-class ProcessTest : public::testing::Test {
-protected:
-	ProcessClass process;
-	std::vector<ProcessClass> processes;
-	void SetUp() override {}
-	void TearDown() override {}
-};
+#ifndef PROCESS_TEST_DIR
+	#define PROCESS_TEST_DIR ""
+#endif
+
+void ProcessTest::SetUp() {}
+
+void ProcessTest::TearDown() {}
 
 TEST_F(ProcessTest, ExecuteProcess) {
 	ProcessInfo info{
-		"/home/atohs/C/CUtils/tests/Process/test.sh"
+		PROCESS_TEST_DIR "/test.sh"
 	};
 
 	process.SetStartInfo(info);
@@ -88,18 +86,18 @@ TEST_F(ProcessTest, eventHandler) {
 }
 
 TEST_F(ProcessTest, OutputProperties) {
-	ProcessInfo info{ "python3 /home/atohs/C/CUtils/tests/Process/proc.py /home/atohs ProcessUnitTest", true };
+	ProcessInfo info{ "python3 " PROCESS_TEST_DIR "/proc.py " PROCESS_TEST_DIR " ProcessUnitTest", true };
 	process.SetStartInfo(info);
 	process.Start();
 	process.Wait();
 
 	process.PrintSummary();
 
-	ProcessInfo info2{ "python3 /home/atohs/C/CUtils/tests/Process/proc.py /home/atohs ProcessUnitTest", true };
+	ProcessInfo info2{ "python3 " PROCESS_TEST_DIR "/proc.py " PROCESS_TEST_DIR " ProcessUnitTest", true };
 	ProcessClass process2;
 	process2.SetStartInfo(info2);
 	process2.Start();
 	process2.WaitFor(10 * 1000);
-	
+
 	process2.PrintSummary();
 }
