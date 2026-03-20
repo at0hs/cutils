@@ -27,7 +27,7 @@ target_compile_options(${TARGET} PRIVATE
 	$<$<CONFIG:Release>:${NODEBUG_OPTIONS}>
 	$<$<CONFIG:Coverage>:${DEBUG_OPTIONS} --coverage>
 	$<$<CONFIG:Address>:${DEBUG_OPTIONS} -fsanitize=address>
-	
+
 )
 add_test(NAME ${TARGET} COMMAND ${TARGET}-googletest)
 

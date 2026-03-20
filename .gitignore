@@ -10,3 +10,4 @@ tmpCodeRunnerFile
 coverage.info
 .cache/
 build_asan/
+build_cov/
