@@ -18,10 +18,10 @@ sudo apt install libglib2.0-dev
 
 ```bash
 # 設定 (ビルドタイプを一つ選択)
-cmake -B build -DCMAKE_BUILD_TYPE=Debug    # デバッグシンボルあり、最適化なし
-cmake -B build -DCMAKE_BUILD_TYPE=Release  # -O2 最適化あり
-cmake -B build -DCMAKE_BUILD_TYPE=Coverage # gcov カバレッジ計測用
-cmake -B build -DCMAKE_BUILD_TYPE=Address  # AddressSanitizer 有効
+cmake -B build      -DCMAKE_BUILD_TYPE=Debug    # デバッグシンボルあり、最適化なし
+cmake -B build      -DCMAKE_BUILD_TYPE=Release  # -O2 最適化あり
+cmake -B build_cov  -DCMAKE_BUILD_TYPE=Coverage # gcov カバレッジ計測用
+cmake -B build_asan -DCMAKE_BUILD_TYPE=Address  # AddressSanitizer 有効
 
 # ビルド
 cmake --build build

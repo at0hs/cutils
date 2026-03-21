@@ -11,8 +11,8 @@ OUTPUT_DIRECTORY       = docs
 #---------------------------------------------------------------------------
 # Input
 #---------------------------------------------------------------------------
-INPUT                  = mainpage.md include lib
-USE_MDFILE_AS_MAINPAGE = mainpage.md
+INPUT                  = README.md include lib
+USE_MDFILE_AS_MAINPAGE = README.md
 RECURSIVE              = YES
 FILE_PATTERNS          = *.h *.c
 EXCLUDE_PATTERNS       = */tests/*

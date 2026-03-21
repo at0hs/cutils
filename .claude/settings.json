@@ -1,37 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(./build/tests/Stream/StreamTest)",
-      "Bash(cmake -B build -DCMAKE_BUILD_TYPE=Address)",
-      "Bash(cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON)",
-      "Bash(cmake --build build --target ThreadTest)",
-      "Bash(./build/tests/Thread/ThreadTest)",
-      "Bash(cmake -B build_asan -DCMAKE_BUILD_TYPE=Address)",
-      "Bash(cmake --build build_asan --target ThreadTest)",
-      "Bash(./build_asan/tests/Thread/ThreadTest)",
-      "Bash(cmake --build build --target CUtils)",
-      "Bash(cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=1)",
-      "Bash(ctest --output-on-failure -E ProcessTest)",
-      "Bash(./tests/Stream/StreamTest)",
-      "Bash(./tests/Bitset/BitsetTest)",
-      "Bash(./tests/ExtendedTypes/ExtendedTypesTest)",
-      "Bash(./tests/PublisherSubscriber/PublisherSubscriberTest)",
-      "Bash(./tests/Thread/ThreadTest)",
-      "Bash(./build/tests/Csv/CsvTest)",
-      "Bash(/home/wsl-atohs/C/CUtils/build/tests/Csv/CsvTest)",
-      "Bash(git stash:*)",
-      "Bash(cmake -B build -DCMAKE_BUILD_TYPE=Debug)",
-      "Bash(./build/tests/ExtendedTypes/ExtendedTypesTest --gtest_filter=LinkedListTest.*)",
-      "Bash(cmake --build build -- -j4)",
-      "Bash(cmake --build build --target CsvTest)",
-      "Bash(./build/tests/Csv/CsvTest --gtest_filter=\"CsvParserTest.Scenario1:CsvParserTest.Scenario3:CsvParserTest.Scenario5\")",
-      "Bash(xxd /home/wsl-atohs/C/CUtils/tests/Csv/input.csv)",
-      "Bash(cmake -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_BUILD_TYPE=Debug)",
-      "Bash(cmake --build build --target ProcessTest)",
-      "Bash(./build/tests/Process/ProcessTest --gtest_filter=ProcessTest.ExecuteProcess)",
-      "Bash(chmod +x /home/wsl-atohs/C/CUtils/tests/Process/test.sh)",
-      "Bash(cmake -B /home/wsl-atohs/C/CUtils/build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=ON)",
-      "Bash(ln -s /home/wsl-atohs/C/CUtils/build/compile_commands.json /home/wsl-atohs/C/CUtils/compile_commands.json)"
+      "Bash(cmake *)"
     ]
   }
 }
