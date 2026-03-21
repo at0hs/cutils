@@ -25,9 +25,9 @@ typedef struct FileBuffer_t {
  * @brief CSVパーサー構造体
  */
 struct CsvParser_t {
-  CsvProperties_t properties; //! プロパティ
-  CsvContent_t content;       //! 解析後のデータ
-  FileBuffer_t file;          //! 元のファイルデータ
+  CsvProperties_t properties;  //! プロパティ
+  CsvContent_t content;        //! 解析後のデータ
+  FileBuffer_t file;           //! 元のファイルデータ
 };
 
 //! @brief バッファ番兵バイト(0xFF は ASCII 範囲外のため、ASCII
@@ -47,28 +47,36 @@ struct CsvParser_t {
  * @param[in] c 判定する文字
  * @return 終端であればtrue、そうでなければfalse
  */
-static inline bool IsEof(char c) { return (uint8_t)c == CSV_EOF_BYTE; }
+static inline bool IsEof(char c) {
+  return (uint8_t)c == CSV_EOF_BYTE;
+}
 
 /**
  * @brief コンマか判定する。
  * @param[in] c 判定する文字
  * @return コンマであればtrue、そうでなければfalse
  */
-static inline bool IsComma(char c) { return c == COMMA; }
+static inline bool IsComma(char c) {
+  return c == COMMA;
+}
 
 /**
  * @brief キャリッジリターン(\r)か判定する。
  * @param[in] c 判定する文字
  * @return キャリッジリターンであればtrue、そうでなければfalse
  */
-static inline bool IsCr(char c) { return c == CARRIGE_RETURN; }
+static inline bool IsCr(char c) {
+  return c == CARRIGE_RETURN;
+}
 
 /**
  * @brief ラインフィード(\n)か判定する。
  * @param[in] c 判定する文字
  * @return ラインフィードであればtrue、そうでなければfalse
  */
-static inline bool IsLf(char c) { return c == LINE_FEED; }
+static inline bool IsLf(char c) {
+  return c == LINE_FEED;
+}
 
 /**
  * @brief CRLF(\r\n)か判定する。
@@ -84,7 +92,9 @@ static inline bool IsCrLf(char c, char nextChar) {
  * @brief 文字を終端(NULL文字)にする。
  * @param[out] c 終端させる文字へのポインタ
  */
-static inline void Terminate(char *c) { *c = '\0'; }
+static inline void Terminate(char *c) {
+  *c = '\0';
+}
 
 /**
  * @brief 不要な文字(NUL / CR / LF)か判定する。
@@ -100,7 +110,9 @@ static inline bool IsExtraChars(char c) {
  * @param[in] c 判定する文字
  * @return ASCII文字であればtrue、そうでなければfalse
  */
-static inline bool IsAscii(char c) { return (uint8_t)c <= 0x7F; }
+static inline bool IsAscii(char c) {
+  return (uint8_t)c <= 0x7F;
+}
 
 /**
  * @brief サポートされていない文字コードが含まれているか判定する。
@@ -159,7 +171,7 @@ static CsvReturnCode Parse(CsvParser_t *self) {
     }
     char *nextChar = c + 1;
     if (IsComma(*c)) {
-      Terminate(c); // 終端
+      Terminate(c);  // 終端
       CsvLine_MoveBackItem(&line, &item);
       CsvItem_Set(&item, nextChar);
     } else if (IsCrLf(*c, *nextChar)) {
@@ -273,7 +285,8 @@ CsvReturnCode CsvParser_LoadFromFile(CsvParser_t *self, const char *filePath) {
  * @param[in]     dataSize データのサイズ
  * @return 処理結果
  */
-CsvReturnCode CsvParser_LoadFromData(CsvParser_t *self, const char *data,
+CsvReturnCode CsvParser_LoadFromData(CsvParser_t *self,
+                                     const char *data,
                                      size_t dataSize) {
   if (UNLIKELY(!self || !data || dataSize == 0)) {
     return CSV_INVALID_PARAMETER;

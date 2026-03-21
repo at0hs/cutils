@@ -20,7 +20,7 @@ typedef struct CsvContent_t {
   //! @name Private
   //! @{
 
-  CsvLineCollection_t lines; //!< 行のリスト
+  CsvLineCollection_t lines;  //!< 行のリスト
 
   //! @}
 } CsvContent_t;

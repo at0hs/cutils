@@ -48,7 +48,7 @@ void CsvLineCollection_Init(CsvLineCollection_t *self) {
 void CsvLineCollection_Resize(CsvLineCollection_t *self, size_t newCapacity) {
   CsvLine_t *newList = realloc(self->list, newCapacity * sizeof(CsvLine_t));
   if (!newList) {
-    return; // 失敗時は既存バッファを維持
+    return;  // 失敗時は既存バッファを維持
   }
   self->list = newList;
   self->capacity = newCapacity;

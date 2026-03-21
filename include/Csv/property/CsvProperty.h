@@ -12,13 +12,13 @@
  * @brief 改行コード
  */
 typedef enum CsvEolCode {
-  CSV_EOL_CR = 0, //!< CR (\r) のみ
-  CSV_EOL_CRLF,   //!< CRLF (\r\n)
+  CSV_EOL_CR = 0,  //!< CR (\r) のみ
+  CSV_EOL_CRLF,    //!< CRLF (\r\n)
 } CsvEolCode;
 
 /**
  * @brief CSVパーサーのプロパティ
  */
 typedef struct CsvProperties {
-  bool hasHeader; //!< ヘッダ行を持つCSVかどうか
+  bool hasHeader;  //!< ヘッダ行を持つCSVかどうか
 } CsvProperties_t;

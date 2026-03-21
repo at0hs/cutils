@@ -36,21 +36,25 @@ typedef struct ProcessManager {
 } ProcessManager;
 
 #define INITIALIZE_NUM_PROCESSES 64
-#define LOCK(m, CODE)                                                          \
-  {                                                                            \
-    pthread_mutex_lock((m));                                                   \
-    CODE;                                                                      \
-    pthread_mutex_unlock((m));                                                 \
+#define LOCK(m, CODE)          \
+  {                            \
+    pthread_mutex_lock((m));   \
+    CODE;                      \
+    pthread_mutex_unlock((m)); \
   }
 
 static ProcessManager _processManager;
 static atomic_bool initialized = false;
-static inline ProcessManager *getMyself() { return &_processManager; }
+static inline ProcessManager *getMyself() {
+  return &_processManager;
+}
 
 /**
  * @brief 2 つの PID が等しいか比較する
  */
-static gboolean AreEquals(pid_t a, pid_t b) { return a == b; }
+static gboolean AreEquals(pid_t a, pid_t b) {
+  return a == b;
+}
 
 /**
  * @brief GHashTable 向けのキー等値比較ラッパー
@@ -62,7 +66,9 @@ static gboolean AreEqualsWrapper(gconstpointer a, gconstpointer b) {
 /**
  * @brief PID からハッシュ値を生成する
  */
-static guint GenerateHash(pid_t pid) { return pid; }
+static guint GenerateHash(pid_t pid) {
+  return pid;
+}
 
 /**
  * @brief GHashTable 向けのハッシュ関数ラッパー
@@ -80,7 +86,8 @@ static guint GenerateHashWrapper(gconstpointer key) {
  * @param signalInfo シグナル発生元の情報 (si_pid, si_status など)
  * @param ucontext 未使用
  */
-static void sigchldHandler(int signalNumber, siginfo_t *signalInfo,
+static void sigchldHandler(int signalNumber,
+                           siginfo_t *signalInfo,
                            void *ucontext) {
   ProcessManager *self = getMyself();
   void *data;
@@ -88,8 +95,6 @@ static void sigchldHandler(int signalNumber, siginfo_t *signalInfo,
     data = g_hash_table_lookup(self->processes,
                                GINT_TO_POINTER(signalInfo->si_pid));
   });
-  // printf("Process %d exited with code %d\n", signalInfo->si_pid,
-  // signalInfo->si_status);
   if (!data || !self->onExited) {
     return;
   }

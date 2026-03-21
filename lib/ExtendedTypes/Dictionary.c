@@ -34,7 +34,9 @@ static void AssignMemory(Dictionary_t *self) {
  * @param[in]     maxKeySize    キーの最大長
  * @param[in]     maxObjectSize 要素のサイズ
  */
-void Dictionary_Init(Dictionary_t *self, size_t capacity, size_t maxKeySize,
+void Dictionary_Init(Dictionary_t *self,
+                     size_t capacity,
+                     size_t maxKeySize,
                      size_t maxObjectSize) {
   if (UNLIKELY(!self)) {
     return;
@@ -67,13 +69,15 @@ void Dictionary_Init(Dictionary_t *self, size_t capacity, size_t maxKeySize,
  * @param[in]     objectSize サイズ
  * @return 追加結果ステータス
  */
-DictionaryReturn Dictionary_Add(Dictionary_t *self, const char *key,
-                                void *object, size_t objectSize) {
+DictionaryReturn Dictionary_Add(Dictionary_t *self,
+                                const char *key,
+                                void *object,
+                                size_t objectSize) {
   if (UNLIKELY(!self || !key || !object)) {
     return DICTIONARY_INVALID_ARG;
   }
 
-  size_t keySize = strlen(key) + 1; // NOTE: null文字までコピーするので+1
+  size_t keySize = strlen(key) + 1;  // NOTE: null文字までコピーするので+1
 
   if ((keySize > self->maxKeySize) || (objectSize > self->maxObjectSize)) {
     return DICTIONARY_INVALID_ARG;
@@ -90,7 +94,7 @@ DictionaryReturn Dictionary_Add(Dictionary_t *self, const char *key,
   if (hsearch_r(e, ENTER, &ep, &self->hashTable) == 0) {
     return DICTIONARY_FULL;
   }
-  
+
   memcpy(element->object.buffer, object, objectSize);
   element->object.size = objectSize;
   self->elements.count++;

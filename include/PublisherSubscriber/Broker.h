@@ -29,12 +29,10 @@ typedef struct Broker_t {
   //! @name Private
   //! @{
 
-  //! サブスクリプション管理
-  Subscription_t subscription;
-  //! NACK されたメッセージを保留する循環キュー
-  MessageStorage_t pendingMessages;
-  //! 登録可能なサブスクライバーの最大数
-  uint8_t maxSubscribers;
+  Subscription_t subscription;  //! サブスクリプション管理
+  MessageStorage_t
+      pendingMessages;     //! NACK されたメッセージを保留する循環キュー
+  uint8_t maxSubscribers;  //! 登録可能なサブスクライバーの最大数
 
   //! @}
 } Broker_t;
@@ -64,9 +62,10 @@ void Broker_Publish(Broker_t *self, const PublishContent_t *content);
  * @param interestedPublish  購読するメッセージの属性
  * @return 割り当てられたアカウントID。登録失敗時は INVALID_ACCOUNT_ID。
  */
-SubscriptionAccountId
-Broker_Subscribe(Broker_t *self, const Subscriber_t *subscriber,
-                 PublishMessageAttribute interestedPublish);
+SubscriptionAccountId Broker_Subscribe(
+    Broker_t *self,
+    const Subscriber_t *subscriber,
+    PublishMessageAttribute interestedPublish);
 
 /**
  * @brief サブスクライバーの登録を解除する

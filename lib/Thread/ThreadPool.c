@@ -14,19 +14,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MUTEX_INIT(mutex) (g_mutex_init((mutex)))
-#define MUTEX_LOCK(mutex) (g_mutex_lock((mutex)))
-#define MUTEX_UNLOCK(mutex) (g_mutex_unlock((mutex)))
-#define MUTEX_DESTROY(mutex) (g_mutex_clear((mutex)))
+#define MUTEX_INIT(mutex)      (g_mutex_init((mutex)))
+#define MUTEX_LOCK(mutex)      (g_mutex_lock((mutex)))
+#define MUTEX_UNLOCK(mutex)    (g_mutex_unlock((mutex)))
+#define MUTEX_DESTROY(mutex)   (g_mutex_clear((mutex)))
 
-#define COND_INIT(cond) (g_cond_init((cond)))
-#define COND_SIGNAL(cond) (g_cond_signal((cond)))
+#define COND_INIT(cond)        (g_cond_init((cond)))
+#define COND_SIGNAL(cond)      (g_cond_signal((cond)))
 #define COND_WAIT(cond, mutex) (g_cond_wait((cond), (mutex)))
-#define COND_BROADCAST(cond) (g_cond_broadcast((cond)))
-#define COND_DESTROY(cond) (g_cond_clear((cond)))
+#define COND_BROADCAST(cond)   (g_cond_broadcast((cond)))
+#define COND_DESTROY(cond)     (g_cond_clear((cond)))
 
-#define QUEUE_POP g_queue_pop_head
-#define QUEUE_PUSH g_queue_push_tail
+#define QUEUE_POP              g_queue_pop_head
+#define QUEUE_PUSH             g_queue_push_tail
 
 static void _ExitWorker(void *);
 //! ワーカースレッドを終了させる
@@ -176,7 +176,8 @@ int ThreadPool_Push(ThreadPool_t *self, const ThreadPoolTask_t *task) {
  * @param numTasks 数
  * @return 0: ok
  */
-int ThreadPool_PushTasks(ThreadPool_t *self, const ThreadPoolTask_t *tasks[],
+int ThreadPool_PushTasks(ThreadPool_t *self,
+                         const ThreadPoolTask_t *tasks[],
                          uint64_t numTasks) {
   g_return_val_if_fail(self, -1);
   g_return_val_if_fail(tasks, -1);

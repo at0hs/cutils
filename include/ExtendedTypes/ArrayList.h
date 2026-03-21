@@ -49,7 +49,8 @@ typedef struct ArrayList {
  * @param[in]  allocator  メモリアロケータ（NULLの場合はデフォルト malloc/freeを使用）
  * @param[in]  objectSize 格納するオブジェクトのサイズ（バイト）
  */
-extern void ArrayList_Init(ArrayList *self, const MemoryAllocator_t *allocator,
+extern void ArrayList_Init(ArrayList *self,
+                           const MemoryAllocator_t *allocator,
                            size_t objectSize);
 //! @}
 
@@ -127,7 +128,8 @@ extern void ArrayList_AddReference(ArrayList *self, void *object);
  * @param[in]     objects 追加するオブジェクトの配列
  * @param[in]     length  追加する要素数
  */
-extern void ArrayList_AddRange(ArrayList *self, const void *objects,
+extern void ArrayList_AddRange(ArrayList *self,
+                               const void *objects,
                                size_t length);
 
 /**
@@ -145,7 +147,8 @@ extern void ArrayList_Append(ArrayList *self, const ArrayList *list);
  * @param[in]     index  挿入位置（既存要素の範囲内）
  * @param[in]     object 挿入するオブジェクト
  */
-extern void ArrayList_Insert(ArrayList *self, uint64_t index,
+extern void ArrayList_Insert(ArrayList *self,
+                             uint64_t index,
                              const void *object);
 
 /**

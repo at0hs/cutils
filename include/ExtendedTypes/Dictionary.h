@@ -86,8 +86,10 @@ typedef enum DictionaryReturn {
  * @param[in]  maxKeysize    キー文字列の最大長（バイト、null終端を含む）
  * @param[in]  maxObjectSize 値オブジェクトの最大サイズ（バイト）
  */
-extern void Dictionary_Init(Dictionary_t *self, size_t capacity,
-                            size_t maxKeysize, size_t maxObjectSize);
+extern void Dictionary_Init(Dictionary_t *self,
+                            size_t capacity,
+                            size_t maxKeysize,
+                            size_t maxObjectSize);
 
 /**
  * @brief 辞書にキーと値のペアを追加する
@@ -99,8 +101,10 @@ extern void Dictionary_Init(Dictionary_t *self, size_t capacity,
  * @return @ref DICTIONARY_FULL   容量超過
  * @return @ref DICTIONARY_INVALID_ARG 引数不正（NULL、キーまたはオブジェクトが最大サイズ超過）
  */
-extern DictionaryReturn Dictionary_Add(Dictionary_t *self, const char *key,
-                                       void *object, size_t objectSize);
+extern DictionaryReturn Dictionary_Add(Dictionary_t *self,
+                                       const char *key,
+                                       void *object,
+                                       size_t objectSize);
 
 /**
  * @brief 指定されたキーの値オブジェクトを取得する

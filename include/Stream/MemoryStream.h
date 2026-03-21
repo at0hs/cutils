@@ -21,7 +21,7 @@ extern "C" {
  * @brief MemoryStream 操作の戻り値コード
  */
 typedef enum MemoryStreamReturnCode {
-  MEMORY_STREAM_SUCCESS = 0,    /**< 操作成功 */
+  MEMORY_STREAM_SUCCESS = 0,      /**< 操作成功 */
   MEMORY_STREAM_INVALID_ARG = -1, /**< 引数が NULL または不正 */
   MEMORY_STREAM_OPEN_FAILED = -2, /**< open_memstream の失敗 */
   MEMORY_STREAM_SEEK_ERROR = -3,  /**< シーク操作の失敗 */
@@ -36,10 +36,11 @@ typedef enum MemoryStreamReturnCode {
  * 読み取り範囲の制御に使用されます。
  */
 typedef struct MemoryStream {
-  FILE *stream;    /**< open_memstream で生成した FILE ポインタ */
-  char *buffer;    /**< open_memstream が管理するバッファ; fflush 後に有効 */
-  size_t position; /**< sizeloc: fflush 後に open_memstream が書き込む現在の書き込み位置 */
-  size_t size;     /**< 高水位標: これまでの最大書き込み位置（論理データサイズ） */
+  FILE *stream; /**< open_memstream で生成した FILE ポインタ */
+  char *buffer; /**< open_memstream が管理するバッファ; fflush 後に有効 */
+  size_t
+      position; /**< sizeloc: fflush 後に open_memstream が書き込む現在の書き込み位置 */
+  size_t size; /**< 高水位標: これまでの最大書き込み位置（論理データサイズ） */
 } MemoryStream;
 
 /**
@@ -98,7 +99,8 @@ size_t MemoryStream_Read(MemoryStream *self, void *buffer, size_t size);
  * @return MEMORY_STREAM_INVALID_ARG `self` が NULL
  * @return MEMORY_STREAM_SEEK_ERROR  `fseeko` が失敗
  */
-MemoryStreamReturnCode MemoryStream_Seek(MemoryStream *self, off_t offset,
+MemoryStreamReturnCode MemoryStream_Seek(MemoryStream *self,
+                                         off_t offset,
                                          int whence);
 
 /**

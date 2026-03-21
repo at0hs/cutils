@@ -21,13 +21,13 @@
 atomic_int processCount = 0;
 atomic_bool initialized = false;
 
-#define ROOT "/tmp/process"
-#define SHELL_PATH "/bin/sh"
-#define SHELL_NAME "sh"
-#define OPTION_COMMAND "-c"
-#define PROCESS_FAILED (-255)
+#define ROOT                 "/tmp/process"
+#define SHELL_PATH           "/bin/sh"
+#define SHELL_NAME           "sh"
+#define OPTION_COMMAND       "-c"
+#define PROCESS_FAILED       (-255)
 #define STANDARD_OUTPUT_FILE "standard_output"
-#define STANDARD_ERROR_FILE "standard_error"
+#define STANDARD_ERROR_FILE  "standard_error"
 
 //! @name static methods
 //! @{
@@ -127,7 +127,8 @@ static void CaptureOutput(const char *standardOutput,
  * @note disableOutputCapture が false の場合は CaptureOutput でリダイレクトしてから execve を呼ぶ。
  *       execve が成功した場合この関数は返らない。
  */
-static void Execute(const ProcessStartInfo *info, const char *outputPath,
+static void Execute(const ProcessStartInfo *info,
+                    const char *outputPath,
                     const char *errorPath) {
   const char *newArgv[] = {SHELL_NAME, OPTION_COMMAND, info->commandLine, NULL};
   if (!info->disableOutputCapture) {
@@ -173,7 +174,7 @@ static void ChildProcess(Process *self) {
   sprintf(outputPath, "%s/" STANDARD_OUTPUT_FILE, self->workspace);
   char errorPath[64] = {0};
   sprintf(errorPath, "%s/" STANDARD_ERROR_FILE, self->workspace);
-  Execute(&self->info, outputPath, errorPath); // no return
+  Execute(&self->info, outputPath, errorPath);  // no return
 }
 //! @}
 
@@ -350,7 +351,9 @@ void Process_StandardOutput(Process *self, ProcessOutput *result) {
     return;
   }
   char outputPath[64] = {0};
-  snprintf(outputPath, sizeof(outputPath), "%s/" STANDARD_OUTPUT_FILE,
+  snprintf(outputPath,
+           sizeof(outputPath),
+           "%s/" STANDARD_OUTPUT_FILE,
            self->workspace);
   ProcessOutput_Init(result, outputPath);
   return;
@@ -373,8 +376,8 @@ void Process_StandardError(Process *self, ProcessOutput *result) {
     return;
   }
   char errorPath[64] = {0};
-  snprintf(errorPath, sizeof(errorPath), "%s/" STANDARD_ERROR_FILE,
-           self->workspace);
+  snprintf(
+      errorPath, sizeof(errorPath), "%s/" STANDARD_ERROR_FILE, self->workspace);
   ProcessOutput_Init(result, errorPath);
   return;
 }
@@ -401,7 +404,7 @@ void Process_Start(Process *self) {
   }
   if (self->id == 0) {
     ChildProcess(self);
-    _exit(PROCESS_FAILED); // unreachable
+    _exit(PROCESS_FAILED);  // unreachable
   }
   self->startTime = (double)GetRealTime() / 1000.0;
   ProcessManager_Register(self->id, self);

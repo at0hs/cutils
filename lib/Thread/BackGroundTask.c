@@ -179,7 +179,7 @@ void BackGroundTask_Destroy(BackGroundTask_t *self) {
   }
   if (!self->exited) {
     pthread_cancel(self->id);
-    struct timespec ts = { .tv_sec = 0, .tv_nsec = 1000000 };
+    struct timespec ts = {.tv_sec = 0, .tv_nsec = 1000000};
     while (!self->exited)
       nanosleep(&ts, NULL);
   }

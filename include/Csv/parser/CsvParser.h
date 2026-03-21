@@ -44,7 +44,8 @@ extern CsvReturnCode CsvParser_LoadFromFile(CsvParser_t *self,
  * @param[in]     dataSize データのバイトサイズ
  * @return 処理結果 (@ref CsvReturnCode)
  */
-extern CsvReturnCode CsvParser_LoadFromData(CsvParser_t *self, const char *data,
+extern CsvReturnCode CsvParser_LoadFromData(CsvParser_t *self,
+                                            const char *data,
                                             size_t dataSize);
 
 /**

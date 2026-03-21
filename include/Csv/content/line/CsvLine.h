@@ -20,7 +20,7 @@ typedef struct CsvLine_t {
   //! @name Private
   //! @{
 
-  CsvItemCollection_t items; //!< アイテムリスト
+  CsvItemCollection_t items;  //!< アイテムリスト
 
   //! @}
 } CsvLine_t;

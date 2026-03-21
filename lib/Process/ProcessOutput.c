@@ -67,7 +67,8 @@ char *ProcessOutput_Read(ProcessOutput *self) {
  * @param bufferSize バッファのサイズ (バイト)
  * @return 実際に読み込んだバイト数。エラーまたは出力が空の場合は -1
  */
-ssize_t ProcessOutput_ReadTo(ProcessOutput *self, char *buffer,
+ssize_t ProcessOutput_ReadTo(ProcessOutput *self,
+                             char *buffer,
                              size_t bufferSize) {
   if (UNLIKELY(!self || !self->size)) {
     return -1;

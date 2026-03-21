@@ -69,7 +69,8 @@ size_t MemoryStream_Read(MemoryStream *self, void *buffer, size_t size) {
   return toRead;
 }
 
-MemoryStreamReturnCode MemoryStream_Seek(MemoryStream *self, off_t offset,
+MemoryStreamReturnCode MemoryStream_Seek(MemoryStream *self,
+                                         off_t offset,
                                          int whence) {
   if (UNLIKELY(!self)) {
     return MEMORY_STREAM_INVALID_ARG;

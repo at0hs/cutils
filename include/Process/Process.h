@@ -44,26 +44,32 @@ typedef struct ProcessStartInfo {
 typedef struct Process {
   //! @name private
   //! @{
-  ProcessStartInfo info;
-  int32_t status;
-  pthread_mutex_t mutex;
-  pthread_cond_t condition;
-  bool isWaiting;
-  struct rusage usage;
-  char workspace[32];
-  pid_t id;
+
+  ProcessStartInfo info;  //! プロセス起動情報
+  int32_t status;  //! プロセスの終了ステータス（WIFEXITED, WIFSIGNALED など）
+  pthread_mutex_t mutex;     //! スレッド同期用の mutex
+  pthread_cond_t condition;  //! スレッド同期用の条件変数
+  bool isWaiting;            //! プロセス終了待機中かどうか
+  struct rusage usage;       //! プロセスのリソース使用量
+  char workspace[32];        //! ワークスペースディレクトリパス
+  pid_t id;                  //! プロセス ID
   struct {
-    void *address;
-    size_t size;
-  } stack;
-  double startTime;
-  double exitTime;
-  bool terminated;
+    void *address;   //! スタックのメモリアドレス
+    size_t size;     //! スタックのサイズ
+  } stack;           //! プロセスのスタック領域情報
+  double startTime;  //! プロセス開始時刻（エポック秒、CLOCK_REALTIME ベース）
+  double exitTime;   //! プロセス終了時刻（エポック秒、CLOCK_REALTIME ベース）
+  bool terminated;   //! プロセスが終了したかどうか
+
   //! @}
 
   //! @name public
   //! @{
-  void (*onExited)(struct Process *self);
+
+  void (*onExited)(
+      struct Process
+          *self);  //! プロセス終了時に呼ばれるコールバック関数ポインタ
+
   //! @}
 } Process;
 

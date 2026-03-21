@@ -21,7 +21,8 @@ extern "C" {
  * @param exitStatus wait4() が返すステータス値
  * @param data ProcessManager_Register() で登録したユーザーデータ
  */
-typedef void (*ProcessExitedEventHandler)(pid_t pid, int32_t exitStatus,
+typedef void (*ProcessExitedEventHandler)(pid_t pid,
+                                          int32_t exitStatus,
                                           void *data);
 
 /**

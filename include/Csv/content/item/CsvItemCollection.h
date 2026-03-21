@@ -22,9 +22,9 @@ typedef struct CsvItemCollection_t {
   //! @name Private
   //! @{
 
-  CsvItem_t *list; //!< アイテムの配列
-  size_t length;   //!< 現在の要素数
-  size_t capacity; //!< 確保済みのキャパシティ
+  CsvItem_t *list;  //!< アイテムの配列
+  size_t length;    //!< 現在の要素数
+  size_t capacity;  //!< 確保済みのキャパシティ
 
   //! @}
 } CsvItemCollection_t;

@@ -17,7 +17,8 @@ static const MemoryAllocator_t defaultAllocator = {.allocate = malloc,
  * @param[in]  allocate メモリ確保関数（NULLの場合は malloc を使用）
  * @param[in]  dispose  メモリ解放関数（NULLの場合は free を使用）
  */
-void MemoryAllocator_Init(MemoryAllocator_t *self, void *(*allocate)(size_t),
+void MemoryAllocator_Init(MemoryAllocator_t *self,
+                          void *(*allocate)(size_t),
                           void (*dispose)(void *)) {
   memset(self, 0, sizeof(*self));
   self->allocate = allocate ? allocate : malloc;

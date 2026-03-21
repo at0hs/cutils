@@ -55,9 +55,10 @@ void Subscription_Init(Subscription_t *self, size_t numAccounts) {
  * @param interestedTopic 購読する属性
  * @return アカウントID
  */
-SubscriptionAccountId
-Subscription_Contract(Subscription_t *self, const Subscriber_t *subscriber,
-                      PublishMessageAttribute interestedTopic) {
+SubscriptionAccountId Subscription_Contract(
+    Subscription_t *self,
+    const Subscriber_t *subscriber,
+    PublishMessageAttribute interestedTopic) {
   if (UNLIKELY(!self || !subscriber || !self->accounts)) {
     return INVALID_ACCOUNT_ID;
   }
@@ -117,7 +118,8 @@ SubscriptionAccount_t *Subscription_GetAccount(Subscription_t *self,
  */
 int Subscription_Match(Subscription_t *self,
                        PublishMessageAttribute messageAttribute,
-                       SubscriptionAccountId matchedIds[], size_t size) {
+                       SubscriptionAccountId matchedIds[],
+                       size_t size) {
   if (UNLIKELY(!self || !matchedIds)) {
     return -1;
   }

@@ -77,9 +77,10 @@ void Subscription_Init(Subscription_t *self, size_t numAccounts);
  * @param interestedPublish 購読するメッセージの属性
  * @return 割り当てられたアカウントID。登録失敗時は INVALID_ACCOUNT_ID。
  */
-SubscriptionAccountId
-Subscription_Contract(Subscription_t *self, const Subscriber_t *subscriber,
-                      PublishMessageAttribute interestedPublish);
+SubscriptionAccountId Subscription_Contract(
+    Subscription_t *self,
+    const Subscriber_t *subscriber,
+    PublishMessageAttribute interestedPublish);
 
 /**
  * @brief 購読を解除してアカウントを無効化する
@@ -107,7 +108,8 @@ SubscriptionAccount_t *Subscription_GetAccount(Subscription_t *self,
  */
 int Subscription_Match(Subscription_t *self,
                        PublishMessageAttribute messageAttribute,
-                       SubscriptionAccountId matchedIds[], size_t size);
+                       SubscriptionAccountId matchedIds[],
+                       size_t size);
 
 /**
  * @brief サブスクリプションを破棄する

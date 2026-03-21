@@ -44,7 +44,8 @@ typedef struct MessageStorage_t {
  * @param messageSize 1要素のバイトサイズ
  * @param capacity    格納可能な最大メッセージ数
  */
-void MessageStorage_Init(MessageStorage_t *self, size_t messageSize,
+void MessageStorage_Init(MessageStorage_t *self,
+                         size_t messageSize,
                          size_t capacity);
 
 /**

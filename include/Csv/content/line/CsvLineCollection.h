@@ -21,9 +21,9 @@ typedef struct CsvLineCollection_t {
   //! @name Private
   //! @{
 
-  CsvLine_t *list; //!< 行データの配列
-  size_t length;   //!< 現在の要素数
-  size_t capacity; //!< 確保済みのキャパシティ
+  CsvLine_t *list;  //!< 行データの配列
+  size_t length;    //!< 現在の要素数
+  size_t capacity;  //!< 確保済みのキャパシティ
 
   //! @}
 } CsvLineCollection_t;

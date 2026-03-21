@@ -18,7 +18,7 @@ typedef struct CsvItem_t {
   //! @name Private
   //! @{
 
-  char *text; //!< フィールドの文字列データ（ファイルバッファへのポインタ）
+  char *text;  //!< フィールドの文字列データ（ファイルバッファへのポインタ）
 
   //! @}
 } CsvItem_t;

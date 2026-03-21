@@ -14,14 +14,18 @@
  * @brief CSVアイテムを初期化する。
  * @param[in,out] self CsvItem_t構造体へのポインタ
  */
-void CsvItem_Init(CsvItem_t *self) { CLEAR(self); }
+void CsvItem_Init(CsvItem_t *self) {
+  CLEAR(self);
+}
 
 /**
  * @brief CSVアイテムに値を設定する。
  * @param[in,out] self  CsvItem_t構造体へのポインタ
  * @param[in]     value 設定する文字列へのポインタ
  */
-void CsvItem_Set(CsvItem_t *self, char *value) { self->text = value; }
+void CsvItem_Set(CsvItem_t *self, char *value) {
+  self->text = value;
+}
 
 /**
  * @brief CSVアイテムの所有権を移動する。
@@ -37,13 +41,17 @@ void CsvItem_MoveOwner(CsvItem_t *self, CsvItem_t *newOwner) {
  * @brief CSVアイテムを破棄する。
  * @param[in,out] self CsvItem_t構造体へのポインタ
  */
-void CsvItem_Destroy(CsvItem_t *self) { CLEAR(self); }
+void CsvItem_Destroy(CsvItem_t *self) {
+  CLEAR(self);
+}
 
 /**
  * @brief CSVアイテムの内容を表示する。
  * @param[in] self CsvItem_t構造体へのポインタ
  */
-void CsvItem_Print(const CsvItem_t *self) { printf("%s", self->text); }
+void CsvItem_Print(const CsvItem_t *self) {
+  printf("%s", self->text);
+}
 
 /**
  * @brief 2つのCSVアイテムが等しいか判定する。

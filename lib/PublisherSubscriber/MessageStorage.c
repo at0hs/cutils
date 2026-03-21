@@ -57,7 +57,8 @@ static inline void UpdateBottom(MessageStorage_t *self) {
  * @param messageSize データサイズ
  * @param capacity 最大容量
  */
-void MessageStorage_Init(MessageStorage_t *self, size_t messageSize,
+void MessageStorage_Init(MessageStorage_t *self,
+                         size_t messageSize,
                          size_t capacity) {
   if (UNLIKELY(!self)) {
     return;

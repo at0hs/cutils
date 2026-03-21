@@ -28,9 +28,10 @@ void Publisher_Init(Publisher_t *self, uint8_t maxSubscribers) {
  * @param interestedTopic 購読する属性
  * @return アカウントID
  */
-SubscriptionAccountId
-Publisher_Subscribe(Publisher_t *self, const Subscriber_t *subscriber,
-                    PublishMessageAttribute interestedTopic) {
+SubscriptionAccountId Publisher_Subscribe(
+    Publisher_t *self,
+    const Subscriber_t *subscriber,
+    PublishMessageAttribute interestedTopic) {
   if (UNLIKELY(!self || !subscriber)) {
     return INVALID_ACCOUNT_ID;
   }

@@ -19,24 +19,28 @@ extern "C" {
  * @brief リストノード
  */
 typedef struct LinkedListNode_t {
-	//! @name private
-	//! @{
-	void *object;                  /*!< 格納オブジェクトへのポインタ */
-	struct LinkedListNode_t *next; /*!< 次のノードへのポインタ（末尾は NULL） */
-	//! @}
+  //! @name private
+  //! @{
+
+  void *object;                  /*!< 格納オブジェクトへのポインタ */
+  struct LinkedListNode_t *next; /*!< 次のノードへのポインタ（末尾は NULL） */
+
+  //! @}
 } LinkedListNode_t;
 
 /**
  * @brief 単方向リスト制御ブロック
  */
 typedef struct LinkedList_t {
-	//! @name private
-	//! @{
-	LinkedListNode_t *head;   /*!< 先頭ノードへのポインタ（空の場合は NULL） */
-	size_t objectSize;        /*!< 格納オブジェクトのサイズ（バイト） */
-	MemoryAllocator_t allocator; /*!< オブジェクト用メモリアロケーター */
-	size_t count;             /*!< 現在の要素数 */
-	//! @}
+  //! @name private
+  //! @{
+
+  LinkedListNode_t *head;      /*!< 先頭ノードへのポインタ（空の場合は NULL） */
+  size_t objectSize;           /*!< 格納オブジェクトのサイズ（バイト） */
+  MemoryAllocator_t allocator; /*!< オブジェクト用メモリアロケーター */
+  size_t count;                /*!< 現在の要素数 */
+
+  //! @}
 } LinkedList_t;
 
 /**
@@ -44,8 +48,9 @@ typedef struct LinkedList_t {
  * @param[in] self リストインスタンス
  * @return 先頭ノードへのポインタ（空の場合は NULL）
  */
-static inline const LinkedListNode_t *LinkedList_GetRoot(const LinkedList_t *self) {
-	return self->head;
+static inline const LinkedListNode_t *LinkedList_GetRoot(
+    const LinkedList_t *self) {
+  return self->head;
 }
 
 /**
@@ -53,8 +58,9 @@ static inline const LinkedListNode_t *LinkedList_GetRoot(const LinkedList_t *sel
  * @param[in] self ノードインスタンス
  * @return 次のノードへのポインタ（末尾の場合は NULL）
  */
-static inline const LinkedListNode_t *LinkedList_GetNext(const LinkedListNode_t *self) {
-	return self->next;
+static inline const LinkedListNode_t *LinkedList_GetNext(
+    const LinkedListNode_t *self) {
+  return self->next;
 }
 
 /**
@@ -63,7 +69,7 @@ static inline const LinkedListNode_t *LinkedList_GetNext(const LinkedListNode_t 
  * @return オブジェクトへのポインタ
  */
 static inline const void *LinkedList_GetObject(const LinkedListNode_t *self) {
-	return self->object;
+  return self->object;
 }
 
 /**
@@ -72,22 +78,28 @@ static inline const void *LinkedList_GetObject(const LinkedListNode_t *self) {
  * @param node 各反復で現在のノードを受け取る変数 (`const LinkedListNode_t *`)
  * @note break / continue が使用できる
  */
-#define LinkedList_Foreach(self, node) \
-	for ((node) = LinkedList_GetRoot(self); (node); (node) = LinkedList_GetNext(node))
+#define LinkedList_Foreach(self, node)            \
+  for ((node) = LinkedList_GetRoot(self); (node); \
+       (node) = LinkedList_GetNext(node))
 
 //! @name constructor
 //! @{
+
 /**
  * @brief LinkedList を初期化する
  * @param[out] self        リストインスタンス
  * @param[in]  allocator   メモリアロケーター（NULL の場合はデフォルト malloc/free を使用）
  * @param[in]  objectSize  格納するオブジェクトのサイズ（バイト）
  */
-extern void LinkedList_Init(LinkedList_t *self, const MemoryAllocator_t *allocator, size_t objectSize);
+extern void LinkedList_Init(LinkedList_t *self,
+                            const MemoryAllocator_t *allocator,
+                            size_t objectSize);
+
 //! @}
 
 //! @name destructor
 //! @{
+
 /**
  * @brief LinkedList を破棄する
  * 全要素を解放し、制御ブロックをゼロクリアする
@@ -161,6 +173,7 @@ extern bool LinkedList_RemoveAt(LinkedList_t *self, uint32_t index);
  * @param[in,out] self リストインスタンス
  */
 extern void LinkedList_Clear(LinkedList_t *self);
+
 //! @}
 
 #ifdef __cplusplus

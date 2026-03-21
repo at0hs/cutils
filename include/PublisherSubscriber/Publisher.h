@@ -44,9 +44,10 @@ void Publisher_Init(Publisher_t *self, uint8_t maxSubscribers);
  * @param interestedPublish 購読するメッセージの属性
  * @return 割り当てられたアカウントID。登録失敗時は INVALID_ACCOUNT_ID。
  */
-SubscriptionAccountId
-Publisher_Subscribe(Publisher_t *self, const Subscriber_t *subscriber,
-                    PublishMessageAttribute interestedPublish);
+SubscriptionAccountId Publisher_Subscribe(
+    Publisher_t *self,
+    const Subscriber_t *subscriber,
+    PublishMessageAttribute interestedPublish);
 
 /**
  * @brief サブスクライバーの登録を解除する

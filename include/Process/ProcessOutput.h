@@ -20,14 +20,10 @@ extern "C" {
 typedef struct ProcessOutput {
   //! @name public
   //! @{
-  /**
-   * @brief 出力データのバイトサイズ
-   */
-  size_t size;
-  /**
-   * @brief 出力が保存された一時ファイルのパス
-   */
-  char path[64];
+
+  size_t size;    //! 出力データのバイトサイズ
+  char path[64];  //! 出力が保存された一時ファイルのパス
+
   //! @}
 } ProcessOutput;
 
@@ -59,7 +55,8 @@ extern char *ProcessOutput_Read(ProcessOutput *self);
  * @param bufferSize バッファのサイズ (バイト)
  * @return 実際に読み込んだバイト数。エラーまたは出力が空の場合は -1
  */
-extern ssize_t ProcessOutput_ReadTo(ProcessOutput *self, char *buffer,
+extern ssize_t ProcessOutput_ReadTo(ProcessOutput *self,
+                                    char *buffer,
                                     size_t bufferSize);
 
 #ifdef __cplusplus

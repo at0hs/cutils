@@ -13,7 +13,8 @@
  * @param update 通知関数
  * @param userData 通知関数に渡すユーザーデータ
  */
-void Subscriber_Init(Subscriber_t *self, SubscriberUpdate update,
+void Subscriber_Init(Subscriber_t *self,
+                     SubscriberUpdate update,
                      void *userData) {
   if (UNLIKELY(!self)) {
     return;

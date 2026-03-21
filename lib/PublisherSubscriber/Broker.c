@@ -55,9 +55,9 @@ static void Republish(Broker_t *self) {
     }
     if (Subscriber_Update(&account->subscriber, &delivery->content) ==
         SUBSCRIBER_NACK) {
-      MessageStorage_MoveLast(pending); // NACKの場合は末尾に移動して再配信待ち
+      MessageStorage_MoveLast(pending);  // NACKの場合は末尾に移動して再配信待ち
     } else {
-      MessageStorage_RemoveTop(pending); // ACKの場合のみ削除
+      MessageStorage_RemoveTop(pending);  // ACKの場合のみ削除
     }
   }
 }
@@ -75,8 +75,8 @@ void Broker_Init(Broker_t *self, uint8_t maxSubscribers) {
   CLEAR(self);
   self->maxSubscribers = maxSubscribers;
   Subscription_Init(&self->subscription, maxSubscribers);
-  MessageStorage_Init(&self->pendingMessages, sizeof(Delivery_t),
-                      maxSubscribers * 16UL);
+  MessageStorage_Init(
+      &self->pendingMessages, sizeof(Delivery_t), maxSubscribers * 16UL);
 }
 
 /**
@@ -96,8 +96,8 @@ void Broker_Publish(Broker_t *self, const PublishContent_t *content) {
     return;
   }
   SubscriptionAccountId ids[self->maxSubscribers];
-  int numIds = Subscription_Match(&self->subscription, content->attribute, ids,
-                                  self->maxSubscribers);
+  int numIds = Subscription_Match(
+      &self->subscription, content->attribute, ids, self->maxSubscribers);
   if (numIds <= 0) {
     return;
   }
@@ -123,11 +123,12 @@ void Broker_Publish(Broker_t *self, const PublishContent_t *content) {
  * @param interestedTopic 購読するメッセージの属性
  * @return 割り当てられたアカウントID。失敗時は INVALID_ACCOUNT_ID。
  */
-SubscriptionAccountId
-Broker_Subscribe(Broker_t *self, const Subscriber_t *subscriber,
-                 PublishMessageAttribute interestedTopic) {
-  return Subscription_Contract(&self->subscription, subscriber,
-                               interestedTopic);
+SubscriptionAccountId Broker_Subscribe(
+    Broker_t *self,
+    const Subscriber_t *subscriber,
+    PublishMessageAttribute interestedTopic) {
+  return Subscription_Contract(
+      &self->subscription, subscriber, interestedTopic);
 }
 
 /**

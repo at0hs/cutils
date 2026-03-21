@@ -19,8 +19,8 @@ extern "C" {
  *          次回の Publish 時に再配信が試みられる。
  */
 typedef enum SubscriberReply {
-  SUBSCRIBER_ACK = 0, //!< 受信成功（メッセージはキューから削除される）
-  SUBSCRIBER_NACK,    //!< 受信失敗（メッセージはキューに保留される）
+  SUBSCRIBER_ACK = 0,  //!< 受信成功（メッセージはキューから削除される）
+  SUBSCRIBER_NACK,     //!< 受信失敗（メッセージはキューに保留される）
 } SubscriberReply;
 
 /**
@@ -57,7 +57,8 @@ typedef struct Subscriber_t {
  * @param update メッセージ受信コールバック（NULL の場合は常に ACK を返す）
  * @param userData コールバックに渡す任意のユーザーデータ（NULL 許容）
  */
-void Subscriber_Init(Subscriber_t *self, SubscriberUpdate update,
+void Subscriber_Init(Subscriber_t *self,
+                     SubscriberUpdate update,
                      void *userData);
 
 /**

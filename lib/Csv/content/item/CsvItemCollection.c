@@ -47,7 +47,7 @@ void CsvItemCollection_Init(CsvItemCollection_t *self) {
 void CsvItemCollection_Resize(CsvItemCollection_t *self, size_t newCapacity) {
   CsvItem_t *newList = realloc(self->list, newCapacity * sizeof(CsvItem_t));
   if (!newList) {
-    return; // 失敗時は既存バッファを維持
+    return;  // 失敗時は既存バッファを維持
   }
   self->list = newList;
   self->capacity = newCapacity;
