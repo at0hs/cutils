@@ -110,3 +110,21 @@ TEST_F(PubSubTest, PublishAfterUnsubscribeWithGap) {
 	EXPECT_EQ(1, observer2.calledCount);	// 配信される
 	EXPECT_EQ(1, observer3.calledCount);	// 配信される
 }
+
+// Unsubscribe 後に同じスロット(ID)へ別のサブスクライバーが入っても、
+// 旧サブスクライバー宛ての保留メッセージが誤配信されないことを確認
+TEST_F(PubSubTest, PendingNotDeliveredToNewSubscriberWithReusedId) {
+	observer1.Update =
+		[](Observer *observer, const PublishContent_t *content) {
+		return SUBSCRIBER_NACK;	// 常にNACK（ペンディングに積み続ける）
+	};
+	SubscriptionAccountId id1 = subject.Subscribe(&observer1.subscriber, subject.ATTR1);
+	subject.Publish(subject.MSG1, subject.ATTR1);	// observer1 宛てがペンディングに積まれる
+	ASSERT_EQ(1, observer1.calledCount);
+	subject.Unsubscribe(id1);
+	SubscriptionAccountId id2 = subject.Subscribe(&observer2.subscriber, subject.ATTR2);
+	ASSERT_EQ(id1, id2);	// 同じスロットが再利用される
+	subject.Publish(subject.MSG2, subject.ATTR2);	// Republish が走る
+	ASSERT_EQ(1, observer2.calledCount);	// 自分宛ての MSG2 のみ
+	EXPECT_EQ(subject.MSG2, observer2.publishes[0].message);
+}

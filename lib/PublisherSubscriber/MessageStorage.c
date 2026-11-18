@@ -78,18 +78,19 @@ void MessageStorage_Init(MessageStorage_t *self,
  * @param adding 追加する要素
  * @return 0: 成功
  */
-int MessageStorage_Push(MessageStorage_t *self, const void *adding) {
-  if (UNLIKELY(!self || !adding)) {
-    return -1;
+MessageStorageReturnCode MessageStorage_Push(MessageStorage_t *self,
+                                             const void *adding) {
+  if (UNLIKELY(!self || !adding || !self->messages)) {
+    return MESSAGE_STORAGE_INVALID_ARG;
   }
   if (self->count == self->capacity) {
-    return -1;
+    return MESSAGE_STORAGE_FULL;
   }
   void *message = GetBottom(self);
   memcpy(message, adding, self->messageSize);
   UpdateBottom(self);
   self->count++;
-  return 0;
+  return MESSAGE_STORAGE_SUCCESS;
 }
 
 /**
@@ -98,17 +99,18 @@ int MessageStorage_Push(MessageStorage_t *self, const void *adding) {
  * @param buffer バッファ
  * @return 0=成功
  */
-int MessageStorage_Pop(MessageStorage_t *self, void *buffer) {
+MessageStorageReturnCode MessageStorage_Pop(MessageStorage_t *self,
+                                            void *buffer) {
   if (UNLIKELY(!self || !buffer)) {
-    return -1;
+    return MESSAGE_STORAGE_INVALID_ARG;
   }
   if (self->count == 0) {
-    return -1;
+    return MESSAGE_STORAGE_EMPTY;
   }
   memcpy(buffer, GetTop(self), self->messageSize);
   UpdateTop(self);
   self->count--;
-  return 0;
+  return MESSAGE_STORAGE_SUCCESS;
 }
 
 /**

@@ -10,15 +10,12 @@ target_compile_features(${TARGET} PUBLIC cxx_std_20)
 target_include_directories(${TARGET} PRIVATE
 	${INCLUDE_DIRECTROY}
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${EXTERNAL_INCLUDE}
 )
 
 target_link_libraries(${TARGET} PRIVATE
 	${LIBRARY_NAME}
 	${EXTERNAL_LIBRARY}
 	${TESTING_FRAMEWORK}
-	$<$<CONFIG:Coverage>:gcov>
-	$<$<CONFIG:Address>:asan>
 )
 
 target_compile_options(${TARGET} PRIVATE
@@ -28,6 +25,5 @@ target_compile_options(${TARGET} PRIVATE
 	$<$<CONFIG:Coverage>:${DEBUG_OPTIONS} --coverage>
 	$<$<CONFIG:Address>:${DEBUG_OPTIONS} -fsanitize=address>
 )
-add_test(NAME ${TARGET} COMMAND ${TARGET}-googletest)
+gtest_discover_tests(${TARGET} DISCOVERY_MODE PRE_TEST)
 
-enable_testing()

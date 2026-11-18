@@ -45,14 +45,17 @@ bool File_Exists(const char *path) {
  * @return 成功時は `0`、失敗時は `-errno` (負値)
  */
 int File_Read(const char *path, void *buffer, size_t size) {
-  FILE *fp = fopen(path, "r");
+  FILE *fp = fopen(path, "rb");
   if (!fp)
     return -errno;
-  if (fread(buffer, size, 1, fp) != size) {
-    fclose(fp);
-    return -errno;
-  }
+  // fread(buffer, 1, size, ...) は読み込んだバイト数を返す
+  size_t readSize = fread(buffer, 1, size, fp);
+  int error = ferror(fp) ? errno : 0;
   fclose(fp);
+  if (readSize != size) {
+    // 途中で EOF になった場合など errno が設定されないケースも失敗として扱う
+    return error ? -error : -EIO;
+  }
   return 0;
 }
 

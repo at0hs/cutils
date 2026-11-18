@@ -6,7 +6,6 @@ target_compile_features(${TARGET} PUBLIC cxx_std_20)
 
 target_include_directories(${TARGET} PRIVATE
 	${INCLUDE_DIRECTROY}
-	${EXTERNAL_INCLUDE}
 	${CMAKE_CURRENT_SOURCE_DIR}
 )
 
@@ -14,8 +13,6 @@ target_link_libraries(${TARGET} PRIVATE
 	${LIBRARY_NAME}
 	${EXTERNAL_LIBRARY}
 	${TESTING_FRAMEWORK}
-	$<$<CONFIG:Coverage>:gcov>
-	$<$<CONFIG:Address>:asan>
 )
 
 target_compile_options(${TARGET} PRIVATE
@@ -29,6 +26,5 @@ target_compile_definitions(${TARGET} PRIVATE
 	PROCESS_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-add_test(NAME ${TARGET} COMMAND ${TARGET}-googletest)
+gtest_discover_tests(${TARGET} DISCOVERY_MODE PRE_TEST)
 
-enable_testing()

@@ -47,8 +47,9 @@ extern void CsvLineCollection_Resize(CsvLineCollection_t *self,
  * @param[in,out] self     CsvLineCollection_t 構造体へのポインタ
  * @param[in,out] moveLine 追加する CsvLine_t
  * 構造体へのポインタ（所有権が移動する）
+ * @return 追加できた場合は true。メモリ確保に失敗した場合は false（引数側は破棄される）
  */
-extern void CsvLineCollection_MoveAndAdd(CsvLineCollection_t *self,
+extern bool CsvLineCollection_MoveAndAdd(CsvLineCollection_t *self,
                                          CsvLine_t *moveLine);
 
 /**

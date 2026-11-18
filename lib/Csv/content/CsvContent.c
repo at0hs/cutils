@@ -24,8 +24,8 @@ void CsvContent_Init(CsvContent_t *self) {
  * @param[in,out] self CsvContent_t構造体へのポインタ
  * @param[in,out] line 追加するCsvLine_t構造体へのポインタ
  */
-void CsvContent_MoveBackLine(CsvContent_t *self, CsvLine_t *line) {
-  CsvLineCollection_MoveAndAdd(&self->lines, line);
+bool CsvContent_MoveBackLine(CsvContent_t *self, CsvLine_t *line) {
+  return CsvLineCollection_MoveAndAdd(&self->lines, line);
 }
 
 /**

@@ -13,6 +13,17 @@ extern "C" {
 #include <stddef.h>
 
 /**
+ * @enum MessageStorageReturnCode
+ * @brief メッセージストレージ操作の結果
+ */
+typedef enum MessageStorageReturnCode {
+  MESSAGE_STORAGE_INVALID_ARG = -3,  //!< 引数不正 (NULL・未初期化)
+  MESSAGE_STORAGE_EMPTY = -2,        //!< キューが空
+  MESSAGE_STORAGE_FULL = -1,         //!< キューが満杯
+  MESSAGE_STORAGE_SUCCESS = 0,       //!< 成功
+} MessageStorageReturnCode;
+
+/**
  * @brief メッセージストレージ制御ブロック
  * @details 固定サイズ要素の循環キュー（リングバッファ）実装。
  *          Broker がペンディングメッセージの保留と再配信に使用する。
@@ -50,19 +61,23 @@ void MessageStorage_Init(MessageStorage_t *self,
 
 /**
  * @brief メッセージをキューの末尾に追加する
- * @param self   インスタンス（NULL の場合は -1 を返す）
+ * @param self   インスタンス
  * @param adding 追加するデータへのポインタ（messageSize バイト分コピーされる）
- * @return 0: 成功 / -1: 失敗（NULL・キュー満杯）
+ * @return @ref MESSAGE_STORAGE_SUCCESS / @ref MESSAGE_STORAGE_FULL /
+ *         @ref MESSAGE_STORAGE_INVALID_ARG
  */
-int MessageStorage_Push(MessageStorage_t *self, const void *adding);
+MessageStorageReturnCode MessageStorage_Push(MessageStorage_t *self,
+                                             const void *adding);
 
 /**
  * @brief キューの先頭からメッセージを取り出す
- * @param self   インスタンス（NULL の場合は -1 を返す）
+ * @param self   インスタンス
  * @param buffer 取り出したデータを格納するバッファ（messageSize バイト以上必要）
- * @return 0: 成功 / -1: 失敗（NULL・キュー空）
+ * @return @ref MESSAGE_STORAGE_SUCCESS / @ref MESSAGE_STORAGE_EMPTY /
+ *         @ref MESSAGE_STORAGE_INVALID_ARG
  */
-int MessageStorage_Pop(MessageStorage_t *self, void *buffer);
+MessageStorageReturnCode MessageStorage_Pop(MessageStorage_t *self,
+                                            void *buffer);
 
 /**
  * @brief キューの先頭メッセージへの参照を返す（取り出しは行わない）

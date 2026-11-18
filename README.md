@@ -4,14 +4,14 @@ C17 で書かれた汎用システムプログラミング向け静的ユーテ�
 
 ## 必要環境
 
-- CMake 3.5 以上
+- CMake 3.18 以上
 - C17 対応コンパイラ (GCC / Clang)
-- `glib-2.0` (システムにインストールされている必要があります)
+- `glib-2.0` と `pkg-config` (システムにインストールされている必要があります)
 - Google Test (CMake の FetchContent で自動取得)
 
 ```bash
 # Ubuntu / Debian
-sudo apt install libglib2.0-dev
+sudo apt install libglib2.0-dev pkg-config
 ```
 
 ## ビルド
@@ -30,8 +30,10 @@ cmake --build build
 ## テスト
 
 ```bash
-# 全テストを実行
+# 全テストを実行 (GoogleTest の各テストケースが個別に登録される)
 cd build && ctest
+# 並列実行・失敗時の出力表示
+ctest --test-dir build -j8 --output-on-failure
 
 # モジュール単位で実行 (例: Bitset)
 ./build/tests/Bitset/BitsetTest
@@ -128,7 +130,7 @@ Dictionary_Find(&dict, "key", &found);
 Dictionary_Destroy(&dict);
 ```
 
-戻り値: `DictionaryReturn` enum (`DICTIONARY_ADDED` / `DICTIONARY_FOUND` / `DICTIONARY_NOT_FOUND` / `DICTIONARY_FULL` / `DICTIONARY_INVALID_ARG`)
+戻り値: `DictionaryReturn` enum (`DICTIONARY_ADDED` / `DICTIONARY_FOUND` / `DICTIONARY_NOT_FOUND` / `DICTIONARY_FULL` / `DICTIONARY_DUPLICATED` / `DICTIONARY_INVALID_ARG`)。同じキーを再度 `Add` すると `DICTIONARY_DUPLICATED` を返し、既存の値は変更されません
 
 ---
 
@@ -195,7 +197,7 @@ Publisher_Unsubscribe(&pub, id);
 Publisher_Destroy(&pub);
 ```
 
-サブスクライバーが `SUBSCRIBER_NACK` を返すと、`MessageStorage` に保存されて次回配信時にリトライされます。
+サブスクライバーが `SUBSCRIBER_NACK` を返すと、`MessageStorage` に保存されて次回配信時にリトライされます。`Unsubscribe` するとそのアカウント宛ての保留メッセージも破棄されます。
 
 ---
 
@@ -254,6 +256,11 @@ BackGroundTask_Destroy(&task);
 
 サブプロセスの起動・管理・stdout/stderr キャプチャ・rusage 計測。
 
+- 子プロセスごとに待機スレッドが `wait4()` で終了を検知します (SIGCHLD ハンドラは設定しません)。
+- 出力キャプチャ先は `mkdtemp()` で作成するパーミッション 0700 の一時ディレクトリ (`/tmp/cutils_process_XXXXXX`) です。
+- `onExited` は待機スレッド上で呼ばれます。中から `Wait` / `WaitFor` / `Destroy` を呼ばないでください。
+- 実行中に `Destroy` すると子プロセスを `SIGKILL` で終了させ、回収してから破棄します。
+
 ```c
 Process proc;
 ProcessStartInfo info = {
@@ -267,8 +274,11 @@ Process_Wait(&proc);
 printf("exit: %d\n",  Process_ExitCode(&proc));
 printf("cpu:  %.3fs\n", Process_TotalProcessorTime(&proc));
 
-ProcessOutput *out = Process_StandardOutput(&proc);
-// out->path にキャプチャされた標準出力の一時ファイルパス
+ProcessOutput out;
+Process_StandardOutput(&proc, &out);
+char *text = ProcessOutput_Read(&out);  // out.path にキャプチャ先ファイルのパス
+free(text);
+ProcessOutput_Destroy(&out);
 
 Process_Destroy(&proc);
 ```
@@ -309,4 +319,4 @@ MemoryStream_Destroy(&ms);
 - 公開ヘッダーはすべて `extern "C"` でラップ済み (C++ から直接インクルード可能)
 - 戻り値はモジュール固有の enum を使用 (生の `int` は使用しない)
 - ヌルポインタガードには `__glibc_likely` / `__glibc_unlikely` を使用
-- プライベートヘルパー (`lib/Utilities/`, `lib/Process/ProcessManager.h`) は `include/` に公開しない
+- プライベートヘルパー (`lib/Utilities/`) は `include/` に公開しない

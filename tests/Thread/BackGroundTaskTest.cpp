@@ -3,6 +3,7 @@
 #include <thread>
 
 bool BackGroundTaskTest::isReady = false;
+int BackGroundTaskTest::pendingEvents = 0;
 std::mutex BackGroundTaskTest::mutex;
 std::condition_variable BackGroundTaskTest::cond;
 
@@ -14,6 +15,7 @@ void BackGroundTaskTest::completed(BackGroundTask_t *o, BackGroundTaskStatus exi
 	// printf("completed=%d\n", exitStatus);
 	{
 		std::lock_guard<std::mutex> lock(mutex);
+		pendingEvents++;
 	}
 	cond.notify_one();
 }
@@ -22,12 +24,14 @@ void BackGroundTaskTest::progressChanged(BackGroundTask_t *o, BackGroundTaskProg
 	// printf("Report progress=%d\n", progress);
 	{
 		std::lock_guard<std::mutex> lock(mutex);
+		pendingEvents++;
 	}
 	cond.notify_one();
 }
 
 void BackGroundTaskTest::SetUp() {
 	isReady = false;
+	pendingEvents = 0;
 	BackGroundTaskWork_t w = { .func = worker, .sender = nullptr };
 	BackGroundTask_Init(&task, &w);
 }
@@ -37,12 +41,13 @@ void BackGroundTaskTest::TearDown() {
 }
 
 bool BackGroundTaskTest::TimedWait(int sec) {
-	std::cv_status status;
-	{
-		std::unique_lock<std::mutex> uniq_lk(mutex);
-		status = cond.wait_for(uniq_lk, std::chrono::seconds(sec));
+	// 通知が待機開始より先に来ても取りこぼさないよう、イベント数を述語にして待つ
+	std::unique_lock<std::mutex> uniq_lk(mutex);
+	if (!cond.wait_for(uniq_lk, std::chrono::seconds(sec), [] { return pendingEvents > 0; })) {
+		return false;
 	}
-	return status == std::cv_status::no_timeout;
+	pendingEvents--;
+	return true;
 }
 
 TEST_F(BackGroundTaskTest, NormalFinish) {
@@ -87,6 +92,7 @@ TEST_F(BackGroundTaskTest, setup) {
 		{
 			std::lock_guard<std::mutex> lock(BackGroundTaskTest::mutex);
 			BackGroundTaskTest::isReady = true;
+			BackGroundTaskTest::pendingEvents++;
 		}
 		BackGroundTaskTest::cond.notify_one();
 	};

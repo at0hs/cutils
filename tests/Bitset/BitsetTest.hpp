@@ -2,6 +2,7 @@
 
 #include "gtest/gtest.h"
 #include <Bitset/Bitset.h>
+#include "BitsetCLinkage.h"
 #include <bitset>
 #include <vector>
 

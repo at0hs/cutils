@@ -17,15 +17,19 @@ target_compile_options(${TARGET} PRIVATE
 	$<$<CONFIG:Address>:${DEBUG_OPTIONS} -fsanitize=address>
 )
 
-target_link_libraries(${TARGET} PRIVATE
+target_link_libraries(${TARGET} PUBLIC
 	${EXTERNAL_LIBRARY}
-	$<$<CONFIG:Coverage>:gcov>
-	$<$<CONFIG:Address>:asan>
+)
+
+# サニタイザ/カバレッジのランタイムはリンカドライバに任せる。
+# 静的ライブラリなので PUBLIC にしておくと、リンクする実行ファイル側にも伝播する。
+target_link_options(${TARGET} PUBLIC
+	$<$<CONFIG:Coverage>:--coverage>
+	$<$<CONFIG:Address>:-fsanitize=address>
 )
 
 target_include_directories(${TARGET} PRIVATE
 	${INCLUDE_DIRECTROY}
-	${EXTERNAL_INCLUDE}
 	${CMAKE_CURRENT_SOURCE_DIR}/Utilities
 )
 

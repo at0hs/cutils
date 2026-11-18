@@ -17,6 +17,24 @@
  */
 #define fill(p, v, s) (memset((p), (v), (s) * __BS_WORD_BYTE))
 
+/*
+ * ヘッダで定義している inline 関数の外部定義をこの翻訳単位に生成する。
+ * C17 では inline 定義だけでは外部シンボルが作られないため、これが無いと
+ * C の利用側で (特に -O0 で) undefined reference になる。
+ */
+extern inline void Bitset_Clear(Bitset_t *self);
+extern inline void Bitset_And(Bitset_t *self, uint64_t value);
+extern inline void Bitset_Or(Bitset_t *self, uint64_t value);
+extern inline void Bitset_ExclusiveOr(Bitset_t *self, uint64_t value);
+extern inline void Bitset_Set(Bitset_t *self, uint64_t position);
+extern inline void Bitset_Reset(Bitset_t *self, uint64_t position);
+extern inline void Bitset_Flip(Bitset_t *self);
+extern inline uint64_t Bitset_Count(Bitset_t *self);
+extern inline bool Bitset_Test(Bitset_t *self, uint64_t position);
+extern inline bool Bitset_Any(Bitset_t *self);
+extern inline bool Bitset_All(Bitset_t *self);
+extern inline bool Bitset_None(Bitset_t *self);
+
 /**
  * @brief ビット集合を初期化します。
  * @param[out] self     Bitset_t構造体へのポインタ
@@ -117,6 +135,8 @@ void Bitset_LeftShift(Bitset_t *self, uint64_t shift) {
     self->words[shiftWords] = self->words[0] << offset;
   }
   fill(self->words, 0, shiftWords);
+  // numBits を超えて押し出されたビットを捨てる
+  __BS_MASK_TAIL(self);
 }
 
 /**
@@ -146,6 +166,9 @@ char *Bitset_ToString(Bitset_t *self) {
   }
   if (!self->string) {
     self->string = calloc(self->numBits + 1, 1);
+    if (__BS_UNLIKELY(!self->string)) {
+      return NULL;
+    }
   }
   int64_t numWords = __BS_TO_WORD(self->numBits);
   uint8_t remainBits = __BS_TO_BIT(self->numBits);

@@ -54,7 +54,7 @@ typedef struct BackGroundTaskEventHandlers_t {
   //! 進捗更新
   void (*progressChanged)(BackGroundTask_t *self,
                           BackGroundTaskProgress newProgress);
-  //! タスク終了
+  //! タスク終了 (ワーカースレッド上で呼ばれる。中から Destroy / Run を呼ばないこと)
   void (*finished)(BackGroundTask_t *self, BackGroundTaskStatus exitStatus);
 } BackGroundTaskEventHandlers_t;
 
@@ -146,7 +146,8 @@ void BackGroundTask_Cancel(BackGroundTask_t *self);
 
 /**
  * @brief タスクを破棄する
- * @note 実行中の場合は Abort してスレッド終了を待ってからリソースを解放する
+ * @note 実行中の場合は Abort してスレッド終了 (finished ハンドラの完了を含む)
+ *       を待ってからリソースを解放する。finished ハンドラ内から呼ぶとデッドロックする。
  * @param self インスタンス
  */
 void BackGroundTask_Destroy(BackGroundTask_t *self);

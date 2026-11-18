@@ -68,6 +68,28 @@ static void Republish(Broker_t *self) {
  * @param maxSubscribers 登録可能なサブスクライバーの最大数
  *                       ペンディングキューの容量は maxSubscribers × 16 になる
  */
+/**
+ * @brief 指定アカウント宛ての保留メッセージをすべて破棄する
+ * @param self インスタンス
+ * @param id   アカウントID
+ */
+static void DiscardPendingMessages(Broker_t *self, SubscriptionAccountId id) {
+  MessageStorage_t *pending = &self->pendingMessages;
+  // キューを 1 周させ、対象以外は末尾へ回して順序を保つ
+  size_t count = pending->count;
+  for (size_t i = 0; i < count; i++) {
+    const Delivery_t *delivery = MessageStorage_Peek(pending);
+    if (UNLIKELY(!delivery)) {
+      break;
+    }
+    if (delivery->id == id) {
+      MessageStorage_RemoveTop(pending);
+    } else {
+      MessageStorage_MoveLast(pending);
+    }
+  }
+}
+
 void Broker_Init(Broker_t *self, uint8_t maxSubscribers) {
   if (UNLIKELY(!self)) {
     return;
@@ -127,6 +149,9 @@ SubscriptionAccountId Broker_Subscribe(
     Broker_t *self,
     const Subscriber_t *subscriber,
     PublishMessageAttribute interestedTopic) {
+  if (UNLIKELY(!self || !subscriber)) {
+    return INVALID_ACCOUNT_ID;
+  }
   return Subscription_Contract(
       &self->subscription, subscriber, interestedTopic);
 }
@@ -139,11 +164,16 @@ SubscriptionAccountId Broker_Subscribe(
  * @param id   解除するアカウントID
  */
 void Broker_Unsubscribe(Broker_t *self, SubscriptionAccountId id) {
-  /**
-   * @note ペンディングしているメッセージはここでは消さず、
-   * Republish するときにアカウントが見つからなければ消すという方法を取る
-   */
+  if (UNLIKELY(!self)) {
+    return;
+  }
+  if (!Subscription_GetAccount(&self->subscription, id)) {
+    return;  // 未登録の ID
+  }
   Subscription_Cancellation(&self->subscription, id);
+  // 解除後に同じ ID が再割り当てされると、旧サブスクライバー宛てのメッセージが
+  // 新しいサブスクライバーへ誤配信されるため、ここで破棄する
+  DiscardPendingMessages(self, id);
 }
 
 /**

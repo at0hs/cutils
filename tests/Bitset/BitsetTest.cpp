@@ -229,4 +229,46 @@ TEST_F(BitsetTest, SegmentationFault) {
 	EXPECT_EQ(false, Bitset_None(nullptr));
 }
 
+TEST(BitsetRegressionTest, InlineFunctionsLinkFromC) {
+	// C (-O0) から inline 関数を呼んでもリンクでき、正しく動作すること
+	EXPECT_EQ(113u, BitsetCLinkage_Run());
+}
+
+TEST(BitsetRegressionTest, LeftShiftDropsBitsBeyondNumBits) {
+	Bitset_t bs;
+	Bitset_Init(&bs, 4);
+	Bitset_Set(&bs, 3);
+	Bitset_LeftShift(&bs, 1);
+	EXPECT_STREQ("0000", Bitset_ToString(&bs));
+	EXPECT_EQ(0u, Bitset_Count(&bs));
+	EXPECT_FALSE(Bitset_Any(&bs));
+	EXPECT_TRUE(Bitset_None(&bs));
+	// 押し出されたビットが右シフトで復活しないこと
+	Bitset_RightShift(&bs, 1);
+	EXPECT_STREQ("0000", Bitset_ToString(&bs));
+	Bitset_Destroy(&bs);
+}
+
+TEST(BitsetRegressionTest, LeftShiftAcrossWordsDropsBitsBeyondNumBits) {
+	Bitset_t bs;
+	Bitset_Init(&bs, 70);
+	Bitset_Set(&bs, 69);
+	Bitset_Set(&bs, 10);
+	Bitset_LeftShift(&bs, 64);
+	EXPECT_EQ(0u, Bitset_Count(&bs));  // bit10 -> 74 (範囲外), bit69 -> 133 (範囲外)
+	Bitset_Destroy(&bs);
+}
+
+TEST(BitsetRegressionTest, WordOperationsDoNotSetBitsBeyondNumBits) {
+	Bitset_t bs;
+	Bitset_Init(&bs, 4);
+	Bitset_Or(&bs, 0xFF);
+	EXPECT_EQ(4u, Bitset_Count(&bs));
+	EXPECT_TRUE(Bitset_All(&bs));
+	EXPECT_STREQ("1111", Bitset_ToString(&bs));
+	Bitset_ExclusiveOr(&bs, 0xF0);
+	EXPECT_EQ(4u, Bitset_Count(&bs));
+	Bitset_Destroy(&bs);
+}
+
 // NOLINTEND

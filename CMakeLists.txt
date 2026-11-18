@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.18)
 
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
@@ -48,13 +48,15 @@ set(WARNING_OPTIONS
 	-Wno-unused-parameter
 )
 
+# 外部依存ライブラリ (pkg-config 経由で取得し、アーキテクチャ固有のパスを直書きしない)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GLIB REQUIRED IMPORTED_TARGET glib-2.0)
 set(EXTERNAL_LIBRARY
-	glib-2.0
+	PkgConfig::GLIB
 )
-set(EXTERNAL_INCLUDE
-	/usr/include/glib-2.0/
-	/lib/x86_64-linux-gnu/glib-2.0/include/
-)
+
+enable_testing()
+include(GoogleTest)
 
 add_subdirectory(lib)
 add_subdirectory(tests)

@@ -157,3 +157,65 @@ TEST_F(ArrayListTest, NullSafety) {
 	ArrayList_Clear(nullptr);
 	ArrayList_ForEach(nullptr, nullptr);
 }
+
+namespace {
+void *FailingAllocate(size_t) {
+	return nullptr;
+}
+}  // namespace
+
+TEST(ArrayListRegressionTest, AppendSelfDoublesElements) {
+	ArrayList list;
+	ArrayList_Init(&list, nullptr, sizeof(int));
+	for (int i = 0; i < 3; i++) {
+		ArrayList_Add(&list, &i);
+	}
+	ArrayList_Append(&list, &list);	// 以前は無限ループしていた
+	ASSERT_EQ(6u, ArrayList_Length(&list));
+	for (int i = 0; i < 6; i++) {
+		EXPECT_EQ(i % 3, *(const int *)ArrayList_At(&list, i));
+	}
+	ArrayList_Destroy(&list);
+}
+
+TEST(ArrayListRegressionTest, ZeroObjectSizeIsSafe) {
+	ArrayList list;
+	memset(&list, 0xAB, sizeof(list));	// 未初期化相当のゴミ
+	ArrayList_Init(&list, nullptr, 0);
+	int value = 1;
+	ArrayList_Add(&list, &value);
+	EXPECT_EQ(0u, ArrayList_Length(&list));
+	ArrayList_Destroy(&list);	// ゴミポインタを free しないこと
+}
+
+TEST(ArrayListRegressionTest, InsertWithAllocationFailureKeepsList) {
+	MemoryAllocator_t allocator;
+	MemoryAllocator_Init(&allocator, nullptr, nullptr);
+	ArrayList list;
+	ArrayList_Init(&list, &allocator, sizeof(int));
+	int a = 1, b = 2, c = 3;
+	ArrayList_Add(&list, &a);
+	ArrayList_Add(&list, &b);
+	list.allocator.allocate = FailingAllocate;	// 以降の確保は失敗させる
+	ArrayList_Insert(&list, 0, &c);
+	ArrayList_Add(&list, &c);
+	list.allocator.allocate = malloc;
+	ASSERT_EQ(2u, ArrayList_Length(&list));
+	EXPECT_EQ(a, *(const int *)ArrayList_At(&list, 0));
+	EXPECT_EQ(b, *(const int *)ArrayList_At(&list, 1));
+	ArrayList_Destroy(&list);
+}
+
+TEST(ArrayListRegressionTest, GrowsBeyondInitialCapacity) {
+	ArrayList list;
+	ArrayList_Init(&list, nullptr, sizeof(int));
+	for (int i = 0; i < 1000; i++) {
+		ArrayList_Add(&list, &i);
+	}
+	ASSERT_EQ(1000u, ArrayList_Length(&list));
+	EXPECT_EQ(999, *(const int *)ArrayList_At(&list, 999));
+	ArrayList_Resize(&list, 10);	// 要素を切り捨てる縮小は無視される
+	EXPECT_EQ(1000u, ArrayList_Length(&list));
+	EXPECT_LE(1000u, ArrayList_Capacity(&list));
+	ArrayList_Destroy(&list);
+}

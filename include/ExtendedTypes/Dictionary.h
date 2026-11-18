@@ -72,6 +72,7 @@ typedef struct Dictionary_t {
  * @brief ステータス
  */
 typedef enum DictionaryReturn {
+  DICTIONARY_DUPLICATED = -4,
   DICTIONARY_INVALID_ARG = -3,
   DICTIONARY_NOT_FOUND = -2,
   DICTIONARY_FULL = -1,
@@ -99,7 +100,8 @@ extern void Dictionary_Init(Dictionary_t *self,
  * @param[in]     objectSize 値オブジェクトのサイズ（maxObjectSize以内）
  * @return @ref DICTIONARY_ADDED  成功
  * @return @ref DICTIONARY_FULL   容量超過
- * @return @ref DICTIONARY_INVALID_ARG 引数不正（NULL、キーまたはオブジェクトが最大サイズ超過）
+ * @return @ref DICTIONARY_DUPLICATED 同じキーが既に登録されている（既存の値は変更されない）
+ * @return @ref DICTIONARY_INVALID_ARG 引数不正（NULL、キーまたはオブジェクトが最大サイズ超過、未初期化）
  */
 extern DictionaryReturn Dictionary_Add(Dictionary_t *self,
                                        const char *key,

@@ -55,8 +55,9 @@ extern void CsvItemCollection_MoveOwner(CsvItemCollection_t *self,
  * @brief アイテムの所有権を移動し、コレクションの末尾に追加する。
  * @param[in,out] self CsvItemCollection_t 構造体へのポインタ
  * @param[in,out] item 追加する CsvItem_t 構造体へのポインタ（所有権が移動する）
+ * @return 追加できた場合は true。メモリ確保に失敗した場合は false（引数側は破棄される）
  */
-extern void CsvItemCollection_MoveAndAdd(CsvItemCollection_t *self,
+extern bool CsvItemCollection_MoveAndAdd(CsvItemCollection_t *self,
                                          CsvItem_t *item);
 
 /**
