@@ -6,16 +6,22 @@ struct ProcessInfo {
 	std::string commandLine;
 	bool disableOutputCapture{ false };
 private:
+	// execve に渡す文字列の実体。_environment はこの要素を指すので、
+	// 文字列の寿命を ProcessInfo と同じにしておく必要がある
+	std::vector<std::string> _environmentStrings;
+	// execve 用の NULL 終端ポインタ配列
 	std::vector<char *> _environment;
 public:
 	ProcessInfo() = default;
 	ProcessInfo(std::string commandLine, bool disableOutputCapture = false) : commandLine(commandLine), disableOutputCapture(disableOutputCapture) {}
 	void SetEnvironment(std::vector<std::string> environment) {
+		_environmentStrings = std::move(environment);
 		_environment.clear();
-		_environment.reserve(environment.size());
-		for (auto &e : environment) {
-			_environment.push_back((char *)e.c_str());
+		_environment.reserve(_environmentStrings.size() + 1);
+		for (auto &e : _environmentStrings) {
+			_environment.push_back(e.data());
 		}
+		_environment.push_back(nullptr);	// execve は NULL 終端を要求する
 	}
 	std::vector<char *> &GetEnvironment() {
 		return _environment;
