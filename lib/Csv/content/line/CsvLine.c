@@ -32,8 +32,8 @@ void CsvLine_MoveOwner(CsvLine_t *self, CsvLine_t *newOwner) {
  * @param[in,out] self 対象オブジェクト
  * @param[in]     item 追加するアイテム
  */
-void CsvLine_MoveBackItem(CsvLine_t *self, CsvItem_t *item) {
-  CsvItemCollection_MoveAndAdd(&self->items, item);
+bool CsvLine_MoveBackItem(CsvLine_t *self, CsvItem_t *item) {
+  return CsvItemCollection_MoveAndAdd(&self->items, item);
 }
 
 /**

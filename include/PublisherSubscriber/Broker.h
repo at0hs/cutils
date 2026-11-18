@@ -31,7 +31,7 @@ typedef struct Broker_t {
 
   Subscription_t subscription;  //! サブスクリプション管理
   MessageStorage_t
-      pendingMessages;     //! NACK されたメッセージを保留する循環キュー
+      pendingMessages;  //! NACK されたメッセージを保留する循環キュー
   uint8_t maxSubscribers;  //! 登録可能なサブスクライバーの最大数
 
   //! @}
@@ -69,8 +69,9 @@ SubscriptionAccountId Broker_Subscribe(
 
 /**
  * @brief サブスクライバーの登録を解除する
- * @note ペンディングキュー内の該当メッセージは即座に削除されず、
- *       次回の再配信試行時にアカウントが見つからない場合に破棄される。
+ * @note ペンディングキュー内の該当アカウント宛てメッセージもこの時点で破棄する。
+ *       (解除後に同じ ID が別のサブスクライバーへ再割り当てされても、
+ *        旧サブスクライバー宛てのメッセージが誤配信されない)
  * @param self インスタンス（NULL の場合は何もしない）
  * @param id   解除するアカウントID
  */

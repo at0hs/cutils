@@ -20,6 +20,9 @@ static const MemoryAllocator_t defaultAllocator = {.allocate = malloc,
 void MemoryAllocator_Init(MemoryAllocator_t *self,
                           void *(*allocate)(size_t),
                           void (*dispose)(void *)) {
+  if (!self) {
+    return;
+  }
   memset(self, 0, sizeof(*self));
   self->allocate = allocate ? allocate : malloc;
   self->dispose = dispose ? dispose : free;

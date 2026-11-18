@@ -10,6 +10,7 @@
 #include "Thread/BackGroundTask.h"
 #include "utilities.h"
 #include <pthread.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <time.h>
 
@@ -44,9 +45,11 @@ static void Exit(void *arg) {
   self->exitStatus = BACK_GROUND_TASK_ABORTED;
   self->isBusy = false;
   pthread_detach(self->id);
-  self->exited = true;
   if (self->eventHandlers.finished)
     self->eventHandlers.finished(self, self->exitStatus);
+  // exited を立てた後は self に一切触れないこと。
+  // (Destroy は exited を見て self を破棄し、Run は再実行を始める)
+  self->exited = true;
 }
 
 /**
@@ -78,8 +81,10 @@ static void *ControlThread(void *arg) {
   Setup(self);
   DoWork(self);
   pthread_detach(self->id);
-  self->exited = true;
   FinishWork(self);
+  // exited を立てた後は self に一切触れないこと。
+  // (Destroy は exited を見て self を破棄し、Run は再実行を始める)
+  self->exited = true;
   return (void *)0;
 }
 
@@ -107,10 +112,11 @@ int BackGroundTask_Run(BackGroundTask_t *self) {
   if (UNLIKELY(!self)) {
     return -1;
   }
-  if (!self->exited) {
+  // 複数スレッドから同時に Run されても起動するのは 1 つだけにする
+  bool expected = true;
+  if (!atomic_compare_exchange_strong(&self->exited, &expected, false)) {
     return -1;
   }
-  self->exited = false;
   if (pthread_create(&self->id, NULL, ControlThread, self) != 0) {
     self->exited = true;
     return -1;

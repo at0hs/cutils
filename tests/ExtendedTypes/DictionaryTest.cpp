@@ -80,3 +80,18 @@ TEST_F(DictionaryTest, ObjectSizeTooBig) {
 	std::string s = "ObjectSizeTooBig";
 	EXPECT_EQ(DICTIONARY_INVALID_ARG, Dictionary_Add(&dict, "peach", &s, s.length()));
 }
+
+TEST(DictionaryRegressionTest, DuplicateKeyIsRejected) {
+	Dictionary_t dict;
+	Dictionary_Init(&dict, 4, 16, sizeof(int));
+	int first = 1;
+	int second = 2;
+	ASSERT_EQ(DICTIONARY_ADDED, Dictionary_Add(&dict, "key", &first, sizeof(first)));
+	EXPECT_EQ(DICTIONARY_DUPLICATED, Dictionary_Add(&dict, "key", &second, sizeof(second)));
+	const DictionaryObject_t *obj = Dictionary_Find(&dict, "key");
+	ASSERT_NE(nullptr, obj);
+	EXPECT_EQ(first, *(int *)obj->buffer);
+	// 重複した追加で容量を消費しないこと
+	EXPECT_EQ(1u, dict.elements.count);
+	Dictionary_Destroy(&dict);
+}

@@ -17,8 +17,8 @@ protected:
 	virtual void SetUp();
 	virtual void TearDown();
 
-	int Push(const std::string_view *adding);
-	int Pop(std::string_view *buffer);
+	MessageStorageReturnCode Push(const std::string_view *adding);
+	MessageStorageReturnCode Pop(std::string_view *buffer);
 	const std::string_view *Peek();
 	void MoveLast();
 	void RemoveTop();

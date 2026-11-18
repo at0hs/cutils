@@ -6,6 +6,7 @@
  */
 #include "ExtendedTypes/Dictionary.h"
 #include "utilities.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -14,7 +15,7 @@
  * @param[in,out] self インスタンス
  */
 static void AssignMemory(Dictionary_t *self) {
-  void *current = self->memoryPool;
+  uint8_t *current = self->memoryPool;
   self->elements.list = (DictionaryElement_t *)current;
 
   current += (self->elements.capacity * sizeof(DictionaryElement_t));
@@ -47,6 +48,7 @@ void Dictionary_Init(Dictionary_t *self,
   self->maxObjectSize = maxObjectSize;
 
   if (hcreate_r(self->elements.capacity, &self->hashTable) == 0) {
+    CLEAR(self);
     return;
   }
 
@@ -56,6 +58,7 @@ void Dictionary_Init(Dictionary_t *self,
   self->memoryPool = malloc(allocateSize);
   if (UNLIKELY(!self->memoryPool)) {
     hdestroy_r(&self->hashTable);
+    CLEAR(self);
     return;
   }
   AssignMemory(self);
@@ -73,7 +76,7 @@ DictionaryReturn Dictionary_Add(Dictionary_t *self,
                                 const char *key,
                                 void *object,
                                 size_t objectSize) {
-  if (UNLIKELY(!self || !key || !object)) {
+  if (UNLIKELY(!self || !key || !object || !self->memoryPool)) {
     return DICTIONARY_INVALID_ARG;
   }
 
@@ -94,6 +97,10 @@ DictionaryReturn Dictionary_Add(Dictionary_t *self,
   if (hsearch_r(e, ENTER, &ep, &self->hashTable) == 0) {
     return DICTIONARY_FULL;
   }
+  // hsearch_r(ENTER) は既存キーがあると上書きせず既存エントリを返す
+  if (ep->data != element) {
+    return DICTIONARY_DUPLICATED;
+  }
 
   memcpy(element->object.buffer, object, objectSize);
   element->object.size = objectSize;
@@ -108,7 +115,7 @@ DictionaryReturn Dictionary_Add(Dictionary_t *self,
  * @return 要素へのポインタ。見つからない場合はNULL
  */
 const DictionaryObject_t *Dictionary_Find(Dictionary_t *self, const char *key) {
-  if (UNLIKELY(!self || !key)) {
+  if (UNLIKELY(!self || !key || !self->memoryPool)) {
     return NULL;
   }
   if ((strlen(key) + 1) > self->maxKeySize) {
@@ -132,7 +139,9 @@ void Dictionary_Destroy(Dictionary_t *self) {
   if (UNLIKELY(!self)) {
     return;
   }
-  hdestroy_r(&self->hashTable);
-  free(self->memoryPool);
+  if (self->memoryPool) {
+    hdestroy_r(&self->hashTable);
+    free(self->memoryPool);
+  }
   CLEAR(self);
 }

@@ -42,8 +42,9 @@ extern void CsvLine_MoveOwner(CsvLine_t *self, CsvLine_t *newOwner);
  * @brief アイテムの所有権を移動し、ラインの末尾に追加する。
  * @param[in,out] self CsvLine_t 構造体へのポインタ
  * @param[in,out] item 追加する CsvItem_t 構造体へのポインタ（所有権が移動する）
+ * @return 追加できた場合は true。メモリ確保に失敗した場合は false（引数側は破棄される）
  */
-extern void CsvLine_MoveBackItem(CsvLine_t *self, CsvItem_t *item);
+extern bool CsvLine_MoveBackItem(CsvLine_t *self, CsvItem_t *item);
 
 /**
  * @brief CsvLine を破棄し、リソースを解放する。

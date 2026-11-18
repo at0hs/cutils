@@ -35,8 +35,9 @@ extern void CsvContent_Init(CsvContent_t *self);
  * @brief 行の所有権を移動し、コンテンツの末尾に追加する。
  * @param[in,out] self CsvContent_t 構造体へのポインタ
  * @param[in,out] line 追加する CsvLine_t 構造体へのポインタ（所有権が移動する）
+ * @return 追加できた場合は true。メモリ確保に失敗した場合は false（引数側は破棄される）
  */
-extern void CsvContent_MoveBackLine(CsvContent_t *self, CsvLine_t *line);
+extern bool CsvContent_MoveBackLine(CsvContent_t *self, CsvLine_t *line);
 
 /**
  * @brief CSVコンテンツを破棄し、リソースを解放する。

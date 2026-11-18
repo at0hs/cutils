@@ -31,15 +31,45 @@ static inline ArrayListNode *GetNode(const ArrayList *self, uint64_t index) {
  * @param[in]     index  挿入位置
  * @param[in]     object 挿入するオブジェクト
  */
-static void Insert(ArrayList *self, uint64_t index, const void *object) {
-  ArrayListNode *node = GetNode(self, index);
-  node->object = self->allocator.allocate(self->objectSize);
-  if (UNLIKELY(!node->object)) {
-    return;
+static bool Insert(ArrayList *self, uint64_t index, const void *object) {
+  void *copy = self->allocator.allocate(self->objectSize);
+  if (UNLIKELY(!copy)) {
+    return false;
   }
-  memcpy(node->object, object, self->objectSize);
+  memcpy(copy, object, self->objectSize);
+  ArrayListNode *node = GetNode(self, index);
+  node->object = copy;
   node->hadEntity = true;
   self->length++;
+  return true;
+}
+
+/**
+ * @brief 少なくとも required 個のノードを格納できるよう容量を拡張する
+ * @param[in,out] self     リストインスタンス
+ * @param[in]     required 必要なノード数
+ * @return 必要な容量を確保できた場合は true
+ */
+static bool EnsureCapacity(ArrayList *self, size_t required) {
+  if (required <= self->capacity) {
+    return true;
+  }
+  size_t newCapacity = self->capacity ? self->capacity : INITIAL_CAPACITY;
+  while (newCapacity < required) {
+    newCapacity *= 2;
+  }
+  ArrayList_Resize(self, newCapacity);
+  return self->capacity >= required;
+}
+
+/**
+ * @brief リストが使用可能な状態か (Init が成功しているか) を判定する
+ * @param[in] self リストインスタンス
+ * @return 使用可能な場合は true
+ */
+static inline bool IsUsable(const ArrayList *self) {
+  return self->objectSize != 0 && self->allocator.allocate &&
+         self->allocator.dispose;
 }
 
 /**
@@ -103,16 +133,19 @@ static void RemoveAt(ArrayList *self, uint64_t index) {
 void ArrayList_Init(ArrayList *self,
                     const MemoryAllocator_t *allocator,
                     size_t objectSize) {
-  if (UNLIKELY(!self || objectSize == 0)) {
+  if (UNLIKELY(!self)) {
     return;
   }
   CLEAR(self);
-  self->capacity = INITIAL_CAPACITY;
-  self->objectSize = objectSize;
-  self->list = calloc(self->capacity, sizeof(ArrayListNode));
+  if (UNLIKELY(objectSize == 0)) {
+    return;
+  }
+  self->list = calloc(INITIAL_CAPACITY, sizeof(ArrayListNode));
   if (UNLIKELY(!self->list)) {
     return;
   }
+  self->capacity = INITIAL_CAPACITY;
+  self->objectSize = objectSize;
   if (allocator) {
     self->allocator = *allocator;
   } else {
@@ -154,6 +187,9 @@ bool ArrayList_IsEmpty(const ArrayList *self) {
 void ArrayList_Resize(ArrayList *self, size_t newSize) {
   if (UNLIKELY(!self || (newSize == 0))) {
     return;
+  }
+  if (newSize < self->length) {
+    return;  // 格納済みの要素を切り捨てる縮小は行わない
   }
   ArrayListNode *tmp = realloc(self->list, newSize * sizeof(ArrayListNode));
   if (UNLIKELY(!tmp)) {
@@ -210,11 +246,11 @@ const void *ArrayList_At(ArrayList *self, uint64_t index) {
  * @param[in]     object 追加するオブジェクト
  */
 void ArrayList_Add(ArrayList *self, const void *object) {
-  if (UNLIKELY(!self || !object)) {
+  if (UNLIKELY(!self || !object || !IsUsable(self))) {
     return;
   }
-  if (self->length >= self->capacity) {
-    ArrayList_Resize(self, self->capacity * 2);
+  if (UNLIKELY(!EnsureCapacity(self, self->length + 1))) {
+    return;
   }
   Insert(self, self->length, object);
 }
@@ -226,11 +262,11 @@ void ArrayList_Add(ArrayList *self, const void *object) {
  * @param[in]     object 追加するオブジェクトへのポインタ
  */
 void ArrayList_AddReference(ArrayList *self, void *object) {
-  if (UNLIKELY(!self || !object)) {
+  if (UNLIKELY(!self || !object || !IsUsable(self))) {
     return;
   }
-  if (self->length >= self->capacity) {
-    ArrayList_Resize(self, self->capacity * 2);
+  if (UNLIKELY(!EnsureCapacity(self, self->length + 1))) {
+    return;
   }
   InsertReference(self, self->length, object);
 }
@@ -259,24 +295,26 @@ void ArrayList_AddRange(ArrayList *self, const void *objects, size_t length) {
  * @param[in]     list 追加するリスト
  */
 void ArrayList_Append(ArrayList *self, const ArrayList *list) {
-  if (UNLIKELY(!self || !list)) {
+  if (UNLIKELY(!self || !list || !IsUsable(self))) {
     return;
   }
   if (self->objectSize != list->objectSize) {
     return;
   }
-  if (self->capacity < (self->length + list->length)) {
-    ArrayList_Resize(self, self->capacity + list->capacity);
+  // self == list の場合に追加中に length が増えて止まらなくなるのを防ぐため、
+  // 追加する要素数はループ前に確定させる
+  const size_t otherLength = list->length;
+  if (UNLIKELY(!EnsureCapacity(self, self->length + otherLength))) {
+    return;
   }
-  // memcpy(GetNode(self, self->length), list->list, list->length);
-  size_t oldLength = self->length;
-  for (size_t i = self->length, j = 0; i < (oldLength + list->length);
-       i++, j++) {
+  for (size_t j = 0; j < otherLength; j++) {
     ArrayListNode *otherNode = GetNode(list, j);
     if (otherNode->hadEntity) {
-      Insert(self, i, otherNode->object);
+      if (UNLIKELY(!Insert(self, self->length, otherNode->object))) {
+        return;
+      }
     } else {
-      InsertReference(self, i, otherNode->object);
+      InsertReference(self, self->length, otherNode->object);
     }
   }
 }
@@ -288,20 +326,28 @@ void ArrayList_Append(ArrayList *self, const ArrayList *list) {
  * @param[in]     object 挿入するオブジェクト
  */
 void ArrayList_Insert(ArrayList *self, uint64_t index, const void *object) {
-  if (UNLIKELY(!self || !object)) {
+  if (UNLIKELY(!self || !object || !IsUsable(self))) {
     return;
   }
   if (index >= self->length) {
     return;
   }
-  if (self->length >= self->capacity) {
-    ArrayList_Resize(self, self->capacity * 2);
+  if (UNLIKELY(!EnsureCapacity(self, self->length + 1))) {
+    return;
   }
+  // 先にコピーを確保し、失敗時はリストを一切変更しない
+  void *copy = self->allocator.allocate(self->objectSize);
+  if (UNLIKELY(!copy)) {
+    return;
+  }
+  memcpy(copy, object, self->objectSize);
   ArrayListNode *node = GetNode(self, index);
   memmove(GetNode(self, index + 1),
           node,
           (self->length - index) * sizeof(ArrayListNode));
-  Insert(self, index, object);
+  node->object = copy;
+  node->hadEntity = true;
+  self->length++;
 }
 
 /**

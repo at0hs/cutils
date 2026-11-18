@@ -19,12 +19,19 @@
  * @brief 新しいノードを生成してオブジェクトをディープコピーする
  * @param[in] self   リストインスタンス
  * @param[in] object コピー元オブジェクト
- * @return 生成したノードへのポインタ
+ * @return 生成したノードへのポインタ。確保に失敗した場合は NULL
  */
 static inline LinkedListNode_t *CreateNewNode(LinkedList_t *self,
                                               const void *object) {
   LinkedListNode_t *node = calloc(1, sizeof(LinkedListNode_t));
+  if (UNLIKELY(!node)) {
+    return NULL;
+  }
   node->object = self->allocator.allocate(self->objectSize);
+  if (UNLIKELY(!node->object)) {
+    free(node);
+    return NULL;
+  }
   memcpy(node->object, object, self->objectSize);
   return node;
 }
@@ -105,10 +112,14 @@ size_t LinkedList_Count(LinkedList_t *self) {
 }
 
 void LinkedList_Add(LinkedList_t *self, const void *object) {
-  if (UNLIKELY(!self || !object)) {
+  if (UNLIKELY(!self || !object || self->objectSize == 0 ||
+               !self->allocator.allocate)) {
     return;
   }
   LinkedListNode_t *node = CreateNewNode(self, object);
+  if (UNLIKELY(!node)) {
+    return;
+  }
   if (LinkedList_IsEmpty(self)) {
     self->head = node;
   } else {

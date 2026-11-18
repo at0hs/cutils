@@ -9,6 +9,8 @@
 class BackGroundTaskTest : public ::testing::Test {
 protected:
 	static bool isReady;
+	//! コールバックから通知された未処理イベント数 (mutex で保護)
+	static int pendingEvents;
 	static std::mutex mutex;
 	static std::condition_variable cond;
 

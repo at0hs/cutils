@@ -110,4 +110,38 @@ TEST_F(CsvParserTest, Scenario6) {
 	ASSERT_EQ(CSV_INVALID_CHAR_CODE, CsvParser_LoadFromData(parser, data.c_str(), data.length()));
 }
 
+TEST_F(CsvParserTest, NonAsciiByteInMiddleIsRejected) {
+	// 0xFF は内部で番兵として使っているが、データ中に現れたら黙って打ち切らずエラーにする
+	const char data[] = { 'a', ',', 'b', '\n', (char)0xFF, 'c', ',', 'd' };
+	EXPECT_EQ(CSV_INVALID_CHAR_CODE, CsvParser_LoadFromData(parser, data, sizeof(data)));
+}
+
+TEST_F(CsvParserTest, LoadFromFileReadsWholeFile) {
+	ASSERT_EQ(CSV_SUCCESS, CsvParser_LoadFromFile(parser, CSV_TEST_INPUT_FILE));
+	const CsvContent_t *content = CsvParser_GetContent(parser);
+	ASSERT_NE(nullptr, content);
+	EXPECT_LT(0u, content->lines.length);
+}
+
+TEST_F(CsvParserTest, LoadFromMissingFileFails) {
+	EXPECT_EQ(CSV_INVALID_PARAMETER, CsvParser_LoadFromFile(parser, "/nonexistent/path/input.csv"));
+}
+
+TEST_F(CsvParserTest, ManyLinesAndItems) {
+	// 初期容量 (32) を超える行数・列数でも正しく解析できること
+	std::string data;
+	for (int line = 0; line < 100; line++) {
+		for (int item = 0; item < 50; item++) {
+			data += std::to_string(line * 100 + item);
+			data += (item == 49) ? "\r\n" : ",";
+		}
+	}
+	ASSERT_EQ(CSV_SUCCESS, CsvParser_LoadFromData(parser, data.c_str(), data.size()));
+	const CsvContent_t *content = CsvParser_GetContent(parser);
+	ASSERT_EQ(100u, content->lines.length);
+	const CsvLine_t *last = &content->lines.list[99];
+	ASSERT_EQ(50u, last->items.length);
+	EXPECT_STREQ("9949", last->items.list[49].text);
+}
+
 // NOLINTEND

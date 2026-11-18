@@ -49,17 +49,19 @@ typedef struct Process {
   int32_t status;  //! プロセスの終了ステータス（WIFEXITED, WIFSIGNALED など）
   pthread_mutex_t mutex;     //! スレッド同期用の mutex
   pthread_cond_t condition;  //! スレッド同期用の条件変数
-  bool isWaiting;            //! プロセス終了待機中かどうか
-  struct rusage usage;       //! プロセスのリソース使用量
-  char workspace[32];        //! ワークスペースディレクトリパス
-  pid_t id;                  //! プロセス ID
+  pthread_t waiter;    //! 子プロセスの終了を待機するスレッド
+  bool waiterStarted;  //! 待機スレッドを起動したかどうか
+  bool exitNotified;  //! 終了処理 (onExited 呼び出し) が完了したかどうか
+  struct rusage usage;  //! プロセスのリソース使用量
+  char workspace[32];   //! ワークスペースディレクトリパス
+  pid_t id;             //! プロセス ID
   struct {
-    void *address;   //! スタックのメモリアドレス
-    size_t size;     //! スタックのサイズ
-  } stack;           //! プロセスのスタック領域情報
+    void *address;  //! スタックのメモリアドレス
+    size_t size;    //! スタックのサイズ
+  } stack;          //! プロセスのスタック領域情報
   double startTime;  //! プロセス開始時刻（エポック秒、CLOCK_REALTIME ベース）
-  double exitTime;   //! プロセス終了時刻（エポック秒、CLOCK_REALTIME ベース）
-  bool terminated;   //! プロセスが終了したかどうか
+  double exitTime;  //! プロセス終了時刻（エポック秒、CLOCK_REALTIME ベース）
+  bool terminated;  //! 終了ステータスが確定したかどうか (mutex で保護)
 
   //! @}
 
@@ -85,6 +87,7 @@ extern void Process_Init(Process *self, const ProcessStartInfo *info);
  *
  * ワークスペースディレクトリと一時ファイルを削除し、
  * mutex・条件変数を解放する。
+ * 子プロセスがまだ実行中の場合は SIGKILL で終了させ、回収を待ってから破棄する。
  * @param self Process インスタンス
  */
 extern void Process_Destroy(Process *self);
@@ -166,14 +169,20 @@ extern void Process_StandardError(Process *self, ProcessOutput *result);
 /**
  * @brief プロセスを非同期で起動する
  *
- * fork() で子プロセスを生成し、ProcessManager に登録する。
- * 終了時には onExited コールバックが呼ばれる。
+ * fork() で子プロセスを生成し、終了を待機する専用スレッドを起動する。
+ * 終了時には待機スレッド上で onExited コールバックが呼ばれる。
+ * 1 つのインスタンスで起動できるのは 1 回だけ。
+ * @note onExited の中から Process_Wait() / Process_WaitFor() / Process_Destroy()
+ *       を呼び出してはならない (自身の完了を待つためデッドロックする)。
  * @param self Process インスタンス
  */
 extern void Process_Start(Process *self);
 
 /**
  * @brief プロセスが終了するまでブロックして待機する
+ *
+ * 戻った時点で終了ステータス・リソース使用量が確定し、onExited の呼び出しも完了している。
+ * 複数スレッドから同時に呼び出してもよい。
  * @param self Process インスタンス
  */
 extern void Process_Wait(Process *self);

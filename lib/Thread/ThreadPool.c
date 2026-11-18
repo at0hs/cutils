@@ -6,7 +6,7 @@
  */
 #include "Thread/ThreadPool.h"
 #include "utilities.h"
-#include <glib-2.0/glib.h>
+#include <glib.h>
 #include <pthread.h>
 #include <sched.h>
 #include <stdbool.h>
@@ -79,7 +79,7 @@ static gpointer WorkerThread(gpointer arg) {
     ThreadPoolTask_t *task = WaitForNewTask(self);
     if (task) {
       task->function(task->arg);
-      free(task);
+      g_free(task);
     }
   }
   __builtin_unreachable();
@@ -106,7 +106,7 @@ static void AbortWorkers(ThreadPool_t *self) {
   MUTEX_LOCK(&self->mutex);
   ThreadPoolTask_t *task;
   while ((task = QUEUE_POP(self->tasks)) != NULL)
-    free(task);
+    g_free(task);
   MUTEX_UNLOCK(&self->mutex);
   StopWorkers(self);
 }
@@ -135,7 +135,9 @@ void ThreadPool_Init(ThreadPool_t *self, uint16_t numThreads) {
   if (numThreads > 0) {
     self->maxNumThreads = numThreads;
   } else {
-    self->maxNumThreads = GetHardwareConcurrency();
+    uint32_t concurrency = GetHardwareConcurrency();
+    self->maxNumThreads =
+        concurrency > UINT16_MAX ? UINT16_MAX : (uint16_t)concurrency;
   }
 
   self->tasks = g_queue_new();
@@ -159,7 +161,9 @@ void ThreadPool_Init(ThreadPool_t *self, uint16_t numThreads) {
  */
 int ThreadPool_Push(ThreadPool_t *self, const ThreadPoolTask_t *task) {
   g_return_val_if_fail(self, -1);
+  g_return_val_if_fail(self->tasks, -1);  // 未初期化 / Destroy 済み
   g_return_val_if_fail(task, -1);
+  g_return_val_if_fail(task->function, -1);
   ThreadPoolTask_t *_task = g_malloc(sizeof(ThreadPoolTask_t));
   *_task = *task;
   MUTEX_LOCK(&self->mutex);
@@ -198,6 +202,7 @@ int ThreadPool_PushTasks(ThreadPool_t *self,
  */
 void ThreadPool_Destroy(ThreadPool_t *self, bool isWait) {
   g_return_if_fail(self);
+  g_return_if_fail(self->tasks);  // 二重 Destroy を防ぐ
   if (isWait) {
     StopWorkers(self);
   } else {
@@ -219,6 +224,7 @@ void ThreadPool_Destroy(ThreadPool_t *self, bool isWait) {
  */
 uint64_t ThreadPool_GetNumTasks(ThreadPool_t *self) {
   g_return_val_if_fail(self, 0);
+  g_return_val_if_fail(self->tasks, 0);
   MUTEX_LOCK(&self->mutex);
   uint64_t numTasks = g_queue_get_length(self->tasks);
   MUTEX_UNLOCK(&self->mutex);

@@ -69,11 +69,17 @@ void CsvItemCollection_MoveOwner(CsvItemCollection_t *self,
  * @param[in,out] self CsvItemCollection_t構造体へのポインタ
  * @param[in,out] item 追加するCsvItem_t構造体へのポインタ
  */
-void CsvItemCollection_MoveAndAdd(CsvItemCollection_t *self, CsvItem_t *item) {
+bool CsvItemCollection_MoveAndAdd(CsvItemCollection_t *self, CsvItem_t *item) {
   if (NeedResize(self)) {
-    CsvItemCollection_Resize(self, self->capacity * 2);
+    CsvItemCollection_Resize(
+        self, self->capacity ? self->capacity * 2 : INITIAL_CAPACITY);
+    if (NeedResize(self)) {
+      CsvItem_Destroy(item);  // 拡張に失敗した場合は範囲外に書き込まない
+      return false;
+    }
   }
   CsvItem_MoveOwner(item, &self->list[self->length++]);
+  return true;
 }
 
 /**

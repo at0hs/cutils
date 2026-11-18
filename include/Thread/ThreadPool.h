@@ -19,7 +19,7 @@ extern "C" {
 #define ATOMIC(t) _Atomic t
 #endif
 
-#include <glib-2.0/glib.h>
+#include <glib.h>
 #include <stdint.h>
 
 /**

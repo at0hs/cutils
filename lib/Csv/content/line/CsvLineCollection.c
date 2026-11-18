@@ -30,6 +30,7 @@ static inline bool NeedResize(CsvLineCollection_t *self) {
  * @param[in,out] self 対象のオブジェクト
  */
 void CsvLineCollection_Init(CsvLineCollection_t *self) {
+  self->length = 0;
   self->capacity = INITIAL_CAPACITY;
   self->list = calloc(self->capacity, sizeof(CsvLine_t));
   if (!self->list) {
@@ -62,11 +63,17 @@ void CsvLineCollection_Resize(CsvLineCollection_t *self, size_t newCapacity) {
  * @param[in,out] self     対象のオブジェクト
  * @param[in,out] moveLine 追加する行データ（所有権が移動する）
  */
-void CsvLineCollection_MoveAndAdd(CsvLineCollection_t *self, CsvLine_t *line) {
+bool CsvLineCollection_MoveAndAdd(CsvLineCollection_t *self, CsvLine_t *line) {
   if (NeedResize(self)) {
-    CsvLineCollection_Resize(self, self->capacity * 2);
+    CsvLineCollection_Resize(
+        self, self->capacity ? self->capacity * 2 : INITIAL_CAPACITY);
+    if (NeedResize(self)) {
+      CsvLine_Destroy(line);  // 拡張に失敗した場合は範囲外に書き込まない
+      return false;
+    }
   }
   CsvLine_MoveOwner(line, &self->list[self->length++]);
+  return true;
 }
 
 /**

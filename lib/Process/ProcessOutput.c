@@ -20,7 +20,8 @@ void ProcessOutput_Init(ProcessOutput *self, const char *outputFile) {
   }
   CLEAR(self);
   strncpy(self->path, outputFile, sizeof(self->path) - 1);
-  self->size = File_GetSize(outputFile);
+  ssize_t size = File_GetSize(outputFile);
+  self->size = size > 0 ? (size_t)size : 0;  // 取得失敗 (-errno) は空として扱う
 }
 
 /**
