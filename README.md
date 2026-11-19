@@ -6,13 +6,8 @@ C17 で書かれた汎用システムプログラミング向け静的ユーテ�
 
 - CMake 3.18 以上
 - C17 対応コンパイラ (GCC / Clang)
-- `glib-2.0` と `pkg-config` (システムにインストールされている必要があります)
+- POSIX スレッド (pthread) — 外部ライブラリへの依存はありません
 - Google Test (CMake の FetchContent で自動取得)
-
-```bash
-# Ubuntu / Debian
-sudo apt install libglib2.0-dev pkg-config
-```
 
 ## ビルド
 
@@ -205,13 +200,14 @@ Publisher_Destroy(&pub);
 
 `include/Thread/ThreadPool.h`
 
-glib スレッドをバックエンドとしたワーカースレッドプール。
+pthread をバックエンドとしたワーカースレッドプール。各関数は `ThreadPoolReturnCode` を返します。
 
 ```c
 ThreadPool_t pool;
-ThreadPool_Init(&pool, 4);  // 0 = CPU コア数
+if (ThreadPool_Init(&pool, 4) != THREAD_POOL_SUCCESS)  // 0 = CPU コア数
+  return;
 
-ThreadPoolTask_t task = { .func = my_func, .arg = my_arg };
+ThreadPoolTask_t task = { .function = my_func, .arg = my_arg };
 ThreadPool_Push(&pool, &task);
 
 ThreadPool_Destroy(&pool, true);  // true = タスクをすべて完了してから終了
