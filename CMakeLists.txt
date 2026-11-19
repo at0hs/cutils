@@ -48,11 +48,11 @@ set(WARNING_OPTIONS
 	-Wno-unused-parameter
 )
 
-# 外部依存ライブラリ (pkg-config 経由で取得し、アーキテクチャ固有のパスを直書きしない)
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GLIB REQUIRED IMPORTED_TARGET glib-2.0)
+# 外部依存ライブラリ (POSIX スレッドのみ)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 set(EXTERNAL_LIBRARY
-	PkgConfig::GLIB
+	Threads::Threads
 )
 
 enable_testing()

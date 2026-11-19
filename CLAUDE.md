@@ -44,9 +44,9 @@ lib/       ← 実装 (.c ファイル、C17)
 tests/     ← GTest スイート (.cpp ファイル、C++20)
 ```
 
-各モジュールは `include/` と `lib/` の両方にサブディレクトリを持っています。ライブラリは `lib/` 以下のすべての `.c` ファイルを再帰的にコンパイルし、単一の静的ライブラリにします。テストは `CUtils`、`PkgConfig::GLIB`、および `GTest::gtest_main` に対してリンクされます。サニタイザ/カバレッジのリンクオプションは `CUtils` から `PUBLIC` で伝播します (`asan`/`gcov` を直接リンクしないこと)。
+各モジュールは `include/` と `lib/` の両方にサブディレクトリを持っています。ライブラリは `lib/` 以下のすべての `.c` ファイルを再帰的にコンパイルし、単一の静的ライブラリにします。テストは `CUtils`、`Threads::Threads`、および `GTest::gtest_main` に対してリンクされます。サニタイザ/カバレッジのリンクオプションは `CUtils` から `PUBLIC` で伝播します (`asan`/`gcov` を直接リンクしないこと)。
 
-**外部依存関係**: `glib-2.0` を `pkg-config` 経由で検出 (Ubuntu/Debian: `sudo apt install libglib2.0-dev pkg-config`)。Google Test は CMake の `FetchContent` を通じて自動的に取得されます。
+**外部依存関係**: POSIX スレッド (`find_package(Threads)`) のみ。Google Test は CMake の `FetchContent` を通じて自動的に取得されます。
 
 ## モジュール
 
@@ -59,7 +59,7 @@ tests/     ← GTest スイート (.cpp ファイル、C++20)
 | **ExtendedTypes/MemoryAllocator** | `MemoryAllocator_t` — `ArrayList`/`LinkedList` に渡すカスタムアロケータインタフェース; `NULL` 渡しで `malloc`/`free` |
 | **Csv** | `CsvParser_LoadFromFile/Data` → `CsvContent` → `CsvLineCollection` → `CsvLine` → `CsvItemCollection` → `CsvItem` |
 | **PublisherSubscriber** | `Broker` が `Publisher`/`Subscriber` をオーケストレーション; コールバックベースの配信; `SUBSCRIBER_NACK` で `MessageStorage` にリトライキュー |
-| **Thread/ThreadPool** | glib スレッドがバックエンドの `ThreadPool`; `ThreadPool_Push/PushTasks` でタスクをプッシュ |
+| **Thread/ThreadPool** | pthread がバックエンドの `ThreadPool`; `ThreadPool_Push/PushTasks` でタスクをプッシュ; 戻り値は `ThreadPoolReturnCode` |
 | **Thread/BackGroundTask** | `setup`/`progressChanged`/`finished` コールバックを持つ単一の長時間実行タスク; `Cancel` (協調的) / `Abort` (pthread_cancel) |
 | **Process** | `Process_Execute/Start/Wait`; 子プロセスごとの待機スレッドで終了検知 (SIGCHLD 不使用); 標準出力/標準エラー出力を `mkdtemp` の一時ディレクトリにキャプチャ; タイミングとリソース使用量(rusage)を追跡 |
 | **Stream/MemoryStream** | `open_memstream` がバックエンドの Read/Write/Seek を備えたインメモリバイトストリーム |
@@ -67,7 +67,7 @@ tests/     ← GTest スイート (.cpp ファイル、C++20)
 ## 規約 (Conventions)
 
 - すべての公開ヘッダーは、`#ifdef __cplusplus extern "C" { ... } #endif` によって C++ からのインクルードをガードしています。
-- 戻り値にはモジュール固有の enum（例: `CsvReturnCode`, `SubscriberReturnCode`, `DictionaryReturn`, `MemoryStreamReturnCode`）を使用します。エラーに生の int 型を絶対に使用しないでください。
+- 戻り値にはモジュール固有の enum（例: `CsvReturnCode`, `SubscriberReturnCode`, `DictionaryReturn`, `MemoryStreamReturnCode`, `ThreadPoolReturnCode`）を使用します。エラーに生の int 型を絶対に使用しないでください。
 - ヌルポインタのガードには、分岐予測のヒントとして `__glibc_likely`/`__glibc_unlikely` を使用します。
 - プライベートヘルパー（例: `lib/Utilities/utilities.h`）は `include/` には公開されず、公開 API に追加してはなりません。
 - ビルドモードは `-DCMAKE_BUILD_TYPE` を介して選択します。個別の configure スクリプトは存在しません。
